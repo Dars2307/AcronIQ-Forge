@@ -4,32 +4,40 @@ import {
   useListDevices, getListDevicesQueryKey,
   useRegisterDevice, useDeleteDevice,
 } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Laptop, Wifi, WifiOff, Copy, Check, Trash2, Plus, ExternalLink } from "lucide-react";
+import {
+  Laptop, Wifi, WifiOff, Copy, Check, Trash2, Plus, ExternalLink, Download, ArrowRight,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-function StatusBadge({ status }: { status: string }) {
-  if (status === "online") return (
-    <span className="flex items-center gap-1.5 text-xs font-medium text-chart-3">
-      <span className="w-1.5 h-1.5 rounded-full bg-chart-3 animate-pulse" />
-      Online
-    </span>
-  );
-  if (status === "idle") return (
-    <span className="flex items-center gap-1.5 text-xs font-medium text-chart-4">
-      <span className="w-1.5 h-1.5 rounded-full bg-chart-4" />
-      Idle
-    </span>
-  );
+function StatusDot({ status }: { status: string }) {
+  if (status === "online")
+    return (
+      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+        </span>
+        Online
+      </span>
+    );
+  if (status === "idle")
+    return (
+      <span className="flex items-center gap-1.5 text-xs font-medium text-amber-400">
+        <span className="h-2 w-2 rounded-full bg-amber-400" />
+        Idle
+      </span>
+    );
   return (
     <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+      <span className="h-2 w-2 rounded-full bg-muted-foreground/30" />
       Offline
     </span>
   );
@@ -43,7 +51,7 @@ export default function Devices() {
   const [copiedToken, setCopiedToken] = useState<number | null>(null);
 
   const { data: devices, isLoading } = useListDevices({
-    query: { queryKey: getListDevicesQueryKey() }
+    query: { queryKey: getListDevicesQueryKey() },
   });
 
   const registerDevice = useRegisterDevice({
@@ -54,13 +62,13 @@ export default function Devices() {
         setDeviceName("");
         toast({ title: "Device registered", description: "Install Forge Seed and it will link automatically." });
       },
-    }
+    },
   });
 
   const deleteDevice = useDeleteDevice({
     mutation: {
       onSuccess: () => queryClient.invalidateQueries({ queryKey: getListDevicesQueryKey() }),
-    }
+    },
   });
 
   function copyToken(id: number, token: string) {
@@ -70,173 +78,193 @@ export default function Devices() {
   }
 
   return (
-    <div className="flex-1 overflow-auto p-8 bg-background">
-      <div className="flex items-center justify-between mb-8 border-b pb-4 border-border/50">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight font-mono text-primary">Devices</h2>
-          <p className="text-muted-foreground mt-1">Connected Forge Seed agents on your machines.</p>
+    <div className="flex-1 overflow-auto">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-8 py-4">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Devices</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">Connected Forge Seed agents on your machines.</p>
+          </div>
+          <button
+            onClick={() => setShowAddDialog(true)}
+            className="flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 transition-all hover:bg-violet-500 active:scale-[0.98]"
+          >
+            <Plus className="h-4 w-4" />
+            Register Device
+          </button>
         </div>
-        <button
-          onClick={() => setShowAddDialog(true)}
-          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
-        >
-          <Plus className="h-4 w-4" />
-          Register Device
-        </button>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {[1, 2].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
-        </div>
-      ) : devices && devices.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          {devices.map(device => (
-            <Card key={device.id} className="border-border/50 bg-card">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                      <Laptop className="h-5 w-5 text-primary" />
+      <div className="p-8">
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1, 2].map((i) => <Skeleton key={i} className="h-48 rounded-2xl" />)}
+          </div>
+        ) : devices && devices.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {devices.map((device) => (
+              <Card key={device.id} className="group overflow-hidden border-border bg-card transition-colors hover:border-violet-500/20">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600/10 ring-1 ring-violet-500/20">
+                        <Laptop className="h-5 w-5 text-violet-400" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">{device.name}</CardTitle>
+                        <p className="mt-0.5 font-mono text-xs capitalize text-muted-foreground">{device.platform}</p>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{device.name}</CardTitle>
-                      <p className="text-xs text-muted-foreground capitalize mt-0.5">{device.platform}</p>
+                    <div className="flex items-center gap-3">
+                      <StatusDot status={device.status} />
+                      <button
+                        onClick={() => deleteDevice.mutate({ id: device.id })}
+                        className="rounded-md p-1 text-muted-foreground/40 transition-colors hover:text-destructive"
+                        title="Unlink device"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={device.status} />
-                    <button
-                      onClick={() => deleteDevice.mutate({ id: device.id })}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                      title="Unlink device"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {device.lastHeartbeatAt && (
-                  <p className="text-xs text-muted-foreground">
-                    Last seen {formatDistanceToNow(new Date(device.lastHeartbeatAt), { addSuffix: true })}
-                  </p>
-                )}
-
-                {/* Ollama AI Status */}
-                <div className="rounded-lg border border-border/50 bg-secondary/30 p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    {device.ollamaAvailable ? (
-                      <Wifi className="h-3.5 w-3.5 text-chart-3" />
-                    ) : (
-                      <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
-                    )}
-                    <span className="text-xs font-medium">
-                      {device.ollamaAvailable ? "Ollama detected" : "Ollama not detected"}
-                    </span>
-                    {device.ollamaVersion && (
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{device.ollamaVersion}</Badge>
-                    )}
-                  </div>
-                  {device.ollamaAvailable ? (
-                    <p className="text-xs text-muted-foreground pl-5">
-                      Active model: <span className="text-foreground font-mono">{device.activeModel ?? "None selected"}</span>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {device.lastHeartbeatAt && (
+                    <p className="text-xs text-muted-foreground">
+                      Last seen{" "}
+                      <span className="text-foreground/70">
+                        {formatDistanceToNow(new Date(device.lastHeartbeatAt), { addSuffix: true })}
+                      </span>
                     </p>
-                  ) : (
-                    <a
-                      href="https://ollama.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline pl-5 flex items-center gap-1"
-                    >
-                      Install Ollama <ExternalLink className="h-3 w-3" />
-                    </a>
                   )}
-                </div>
 
-                {device.agentVersion && (
-                  <p className="text-xs text-muted-foreground">
-                    Forge Seed <span className="font-mono">{device.agentVersion}</span>
-                  </p>
-                )}
-
-                {/* Pairing token */}
-                <div>
-                  <p className="text-[10px] text-muted-foreground mb-1">Pairing token</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-[10px] font-mono bg-secondary/50 rounded px-2 py-1 truncate text-muted-foreground">
-                      {device.pairingToken.slice(0, 32)}...
-                    </code>
-                    <button
-                      onClick={() => copyToken(device.id, device.pairingToken)}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {copiedToken === device.id ? <Check className="h-3.5 w-3.5 text-chart-3" /> : <Copy className="h-3.5 w-3.5" />}
-                    </button>
+                  {/* Ollama AI status */}
+                  <div className="rounded-xl border border-border bg-secondary/30 p-3">
+                    <div className="flex items-center gap-2">
+                      {device.ollamaAvailable ? (
+                        <Wifi className="h-3.5 w-3.5 text-emerald-400" />
+                      ) : (
+                        <WifiOff className="h-3.5 w-3.5 text-muted-foreground/40" />
+                      )}
+                      <span className={cn("text-xs font-medium", device.ollamaAvailable ? "text-emerald-400" : "text-muted-foreground")}>
+                        {device.ollamaAvailable ? "Ollama detected" : "Ollama not detected"}
+                      </span>
+                      {device.ollamaVersion && (
+                        <Badge variant="secondary" className="ml-auto px-1.5 py-0 font-mono text-[10px]">
+                          {device.ollamaVersion}
+                        </Badge>
+                      )}
+                    </div>
+                    {device.ollamaAvailable ? (
+                      <p className="mt-1 pl-5 text-xs text-muted-foreground">
+                        Model:{" "}
+                        <span className="font-mono text-foreground/80">{device.activeModel ?? "None selected"}</span>
+                      </p>
+                    ) : (
+                      <a
+                        href="https://ollama.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 flex items-center gap-1 pl-5 text-xs text-violet-400 hover:underline"
+                      >
+                        Install Ollama <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        /* Empty state — first-time experience */
-        <div className="max-w-2xl mx-auto">
-          <div className="rounded-2xl border border-border/50 bg-card p-10 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
-              <Laptop className="h-7 w-7 text-primary" />
-            </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">No devices connected</h3>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto mb-8">
-              Install Forge Seed on your development machine. It will automatically detect your Replit account and link to this control centre.
-            </p>
 
-            {/* Download button */}
-            <div className="mb-8">
-              <button
-                onClick={() => {
-                  toast({
-                    title: "Forge Seed installer coming soon",
-                    description: "We're packaging the v0.1.0 Windows installer. You'll be notified when it's ready to download.",
-                  });
-                }}
-                className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-xl transition-colors text-sm"
-              >
-                <Laptop className="h-4 w-4" />
-                Download Forge Seed for Windows
-                <Badge variant="secondary" className="text-[10px] ml-1 bg-primary-foreground/20 text-primary-foreground border-0">v0.1.0</Badge>
-              </button>
-              <p className="text-xs text-muted-foreground mt-2">macOS and Linux support coming soon</p>
-            </div>
+                  {device.agentVersion && (
+                    <p className="text-xs text-muted-foreground">
+                      Forge Seed <span className="font-mono text-foreground/60">{device.agentVersion}</span>
+                    </p>
+                  )}
 
-            {/* Steps */}
-            <div className="grid grid-cols-3 gap-4 text-left">
-              {[
-                { n: "1", title: "Download", desc: "Download the Forge Seed installer for Windows 10/11." },
-                { n: "2", title: "Install", desc: "Run the installer. Administrator access is only required once." },
-                { n: "3", title: "Select Folders", desc: "Choose the project folders you want Forge to monitor." },
-              ].map(({ n, title, desc }) => (
-                <div key={n} className="rounded-lg border border-border/50 bg-secondary/30 p-4">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary mb-2">
-                    {n}
+                  {/* Pairing token */}
+                  <div>
+                    <p className="mb-1 text-[10px] text-muted-foreground/60">Pairing token</p>
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-2 py-1.5">
+                      <code className="flex-1 truncate font-mono text-[10px] text-muted-foreground">
+                        {device.pairingToken.slice(0, 32)}…
+                      </code>
+                      <button
+                        onClick={() => copyToken(device.id, device.pairingToken)}
+                        className="shrink-0 text-muted-foreground/40 transition-colors hover:text-foreground"
+                      >
+                        {copiedToken === device.id ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-sm font-semibold mb-1">{title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          /* Empty state */
+          <div className="mx-auto max-w-2xl">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-10 text-center">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-violet-600/5 to-transparent" />
+              <div className="relative">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-600/10 ring-1 ring-violet-500/20">
+                  <Laptop className="h-7 w-7 text-violet-400" />
                 </div>
-              ))}
-            </div>
+                <h3 className="mb-2 text-xl font-bold">No devices connected</h3>
+                <p className="mx-auto mb-8 max-w-md text-sm text-muted-foreground">
+                  Install Forge Seed on your development machine. It will automatically detect your account and link to this control centre.
+                </p>
 
-            <div className="mt-6">
-              <button
-                onClick={() => setShowAddDialog(true)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-              >
-                Or register a device manually
-              </button>
+                <div className="mb-8 flex flex-col items-center gap-2">
+                  <button
+                    onClick={() =>
+                      toast({
+                        title: "Forge Seed installer coming soon",
+                        description: "We're packaging the v0.1.0 Windows installer. You'll be notified when it's ready.",
+                      })
+                    }
+                    className="inline-flex items-center gap-2.5 rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 transition-all hover:bg-violet-500 active:scale-[0.98]"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Forge Seed for Windows
+                    <Badge variant="secondary" className="ml-1 border-0 bg-white/20 text-[10px] text-white">
+                      v0.1.0
+                    </Badge>
+                  </button>
+                  <p className="text-xs text-muted-foreground/60">macOS and Linux support coming soon</p>
+                </div>
+
+                {/* Steps */}
+                <div className="grid grid-cols-3 gap-4 text-left">
+                  {[
+                    { n: "1", title: "Download", desc: "Download the Forge Seed installer for Windows 10/11." },
+                    { n: "2", title: "Install", desc: "Run the installer. Administrator access is only required once." },
+                    { n: "3", title: "Select Folders", desc: "Choose project folders you want Forge to monitor." },
+                  ].map(({ n, title, desc }) => (
+                    <div key={n} className="rounded-xl border border-border bg-secondary/30 p-4">
+                      <div className="mb-3 flex h-7 w-7 items-center justify-center rounded-full bg-violet-600/10 text-xs font-bold text-violet-400 ring-1 ring-violet-500/20">
+                        {n}
+                      </div>
+                      <p className="mb-1 text-sm font-semibold">{title}</p>
+                      <p className="text-xs leading-relaxed text-muted-foreground">{desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowAddDialog(true)}
+                    className="group inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Or register a device manually
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
@@ -250,7 +278,7 @@ export default function Devices() {
                 id="device-name"
                 placeholder="e.g. Desktop-PC, MacBook-Pro"
                 value={deviceName}
-                onChange={e => setDeviceName(e.target.value)}
+                onChange={(e) => setDeviceName(e.target.value)}
               />
             </div>
             <p className="text-sm text-muted-foreground">
@@ -260,16 +288,18 @@ export default function Devices() {
           <DialogFooter>
             <button
               onClick={() => setShowAddDialog(false)}
-              className="px-4 py-2 text-sm rounded-lg border border-border hover:bg-secondary transition-colors"
+              className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-secondary"
             >
               Cancel
             </button>
             <button
-              onClick={() => registerDevice.mutate({ data: { name: deviceName, platform: "windows" } })}
+              onClick={() =>
+                registerDevice.mutate({ data: { name: deviceName, platform: "windows" } })
+              }
               disabled={!deviceName.trim() || registerDevice.isPending}
-              className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-violet-500 disabled:opacity-50"
             >
-              {registerDevice.isPending ? "Registering..." : "Register Device"}
+              {registerDevice.isPending ? "Registering…" : "Register Device"}
             </button>
           </DialogFooter>
         </DialogContent>

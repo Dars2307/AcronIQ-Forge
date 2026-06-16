@@ -67,61 +67,72 @@
 }
 
 :root, .dark {
-  --background: 220 30% 5%;
-  --foreground: 210 20% 90%;
-  --border: 220 20% 12%;
-  --input: 220 20% 12%;
-  --ring: 190 100% 50%;
-  
-  --card: 220 25% 7%;
-  --card-foreground: 210 20% 90%;
-  --card-border: 220 20% 12%;
-  
-  --popover: 220 25% 7%;
-  --popover-foreground: 210 20% 90%;
-  --popover-border: 220 20% 12%;
-  
-  --primary: 190 100% 50%;
-  --primary-foreground: 220 30% 5%;
-  --primary-border: 190 100% 50%;
-  
-  --secondary: 220 20% 15%;
-  --secondary-foreground: 210 20% 90%;
-  --secondary-border: 220 20% 20%;
-  
-  --muted: 220 20% 12%;
-  --muted-foreground: 220 10% 60%;
-  --muted-border: 220 20% 15%;
-  
-  --accent: 220 20% 15%;
-  --accent-foreground: 210 20% 90%;
-  --accent-border: 220 20% 20%;
-  
-  --destructive: 0 80% 60%;
+  /* Backgrounds */
+  --background: 240 10% 4%;
+  --foreground: 0 0% 97%;
+  --border: 240 6% 14%;
+  --input: 240 6% 14%;
+  --ring: 263 70% 58%;
+
+  /* Cards */
+  --card: 240 10% 7%;
+  --card-foreground: 0 0% 95%;
+  --card-border: 240 6% 13%;
+
+  /* Popovers */
+  --popover: 240 10% 7%;
+  --popover-foreground: 0 0% 97%;
+  --popover-border: 240 6% 14%;
+
+  /* Primary — Violet */
+  --primary: 263 70% 58%;
+  --primary-foreground: 0 0% 100%;
+  --primary-border: 263 70% 58%;
+
+  /* Secondary */
+  --secondary: 240 6% 12%;
+  --secondary-foreground: 0 0% 90%;
+  --secondary-border: 240 6% 18%;
+
+  /* Muted */
+  --muted: 240 6% 12%;
+  --muted-foreground: 240 5% 50%;
+  --muted-border: 240 6% 15%;
+
+  /* Accent */
+  --accent: 240 6% 14%;
+  --accent-foreground: 0 0% 90%;
+  --accent-border: 240 6% 18%;
+
+  /* Destructive */
+  --destructive: 0 72% 56%;
   --destructive-foreground: 0 0% 100%;
-  --destructive-border: 0 80% 60%;
-  
-  --chart-1: 190 100% 50%;
-  --chart-2: 280 80% 60%;
-  --chart-3: 150 80% 50%;
-  --chart-4: 40 100% 60%;
-  --chart-5: 0 80% 60%;
-  
-  --sidebar: 220 30% 5%;
-  --sidebar-foreground: 210 20% 90%;
-  --sidebar-border: 220 20% 12%;
-  --sidebar-primary: 190 100% 50%;
-  --sidebar-primary-foreground: 220 30% 5%;
-  --sidebar-primary-border: 190 100% 50%;
-  --sidebar-accent: 220 20% 12%;
-  --sidebar-accent-foreground: 210 20% 90%;
-  --sidebar-accent-border: 220 20% 15%;
-  --sidebar-ring: 190 100% 50%;
-  
-  --app-font-sans: "Inter", sans-serif;
+  --destructive-border: 0 72% 56%;
+
+  /* Charts */
+  --chart-1: 263 70% 58%;
+  --chart-2: 220 80% 58%;
+  --chart-3: 142 71% 45%;
+  --chart-4: 38 92% 55%;
+  --chart-5: 0 72% 56%;
+
+  /* Sidebar */
+  --sidebar: 240 12% 5%;
+  --sidebar-foreground: 0 0% 92%;
+  --sidebar-border: 240 6% 12%;
+  --sidebar-primary: 263 70% 58%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-border: 263 70% 58%;
+  --sidebar-accent: 263 40% 12%;
+  --sidebar-accent-foreground: 263 60% 80%;
+  --sidebar-accent-border: 263 30% 18%;
+  --sidebar-ring: 263 70% 58%;
+
+  /* Fonts */
+  --app-font-sans: "Inter", system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
-  --app-font-mono: "Fira Code", monospace;
-  --radius: 0.25rem;
+  --app-font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --radius: 0.5rem;
 }
 
 @layer base {
@@ -131,4 +142,25 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+}
+
+/* Violet atmospheric glow */
+.violet-glow {
+  box-shadow: 0 0 40px rgba(124, 58, 237, 0.12);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(240 6% 18%);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(263 40% 30%);
 }
