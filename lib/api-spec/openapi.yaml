@@ -9,6 +9,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: Auth
+    description: Browser and mobile authentication endpoints.
   - name: projects
     description: Project management
   - name: tasks
@@ -21,6 +23,14 @@ tags:
     description: Audit log
   - name: dashboard
     description: Dashboard summaries
+  - name: devices
+    description: Connected Forge Seed devices
+  - name: agents
+    description: Specialised engineering agents
+  - name: memory
+    description: Engineering memory
+  - name: constitution
+    description: AcronIQ Engineering Constitution rules
 paths:
   /healthz:
     get:
@@ -34,6 +44,122 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      operationId: getCurrentAuthUser
+      summary: Get the currently authenticated user
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '200':
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserEnvelope'
+  /login:
+    get:
+      tags: [Auth]
+      operationId: beginBrowserLogin
+      summary: Start the browser OIDC login flow
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the OIDC authorization endpoint.
+  /callback:
+    get:
+      tags: [Auth]
+      operationId: handleBrowserLoginCallback
+      summary: Complete the browser OIDC login flow
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: iss
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        '302':
+          description: Redirect to returnTo path on success.
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Clear the session and begin OIDC logout
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '302':
+          description: Redirect to the OIDC provider logout URL.
+  /mobile-auth/token-exchange:
+    post:
+      tags: [Auth]
+      operationId: exchangeMobileAuthorizationCode
+      summary: Exchange a mobile OIDC code for a session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileTokenExchangeRequest'
+      responses:
+        '200':
+          description: Session created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileTokenExchangeSuccess'
+        '400':
+          description: Missing or invalid required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Token did not contain usable claims.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Token exchange failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /mobile-auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutMobileSession
+      summary: Delete a mobile session token
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+      responses:
+        '200':
+          description: Logout processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutSuccess'
 
   /projects:
     get:
@@ -488,7 +614,366 @@ paths:
                 items:
                   $ref: "#/components/schemas/ActivityItem"
 
+  /devices:
+    get:
+      operationId: listDevices
+      tags: [devices]
+      summary: List connected Forge Seed devices
+      responses:
+        "200":
+          description: Devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+    post:
+      operationId: registerDevice
+      tags: [devices]
+      summary: Register a new device (generates pairing token)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceInput"
+      responses:
+        "201":
+          description: Device registered with pairing token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+
+  /devices/{id}:
+    get:
+      operationId: getDevice
+      tags: [devices]
+      summary: Get a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+    delete:
+      operationId: deleteDevice
+      tags: [devices]
+      summary: Unlink a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /devices/{id}/heartbeat:
+    patch:
+      operationId: deviceHeartbeat
+      tags: [devices]
+      summary: Device sends heartbeat with status update
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceHeartbeat"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+
+  /agents:
+    get:
+      operationId: listAgents
+      tags: [agents]
+      summary: List all configured agents
+      responses:
+        "200":
+          description: Agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+    post:
+      operationId: createAgent
+      tags: [agents]
+      summary: Create an agent configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{id}:
+    patch:
+      operationId: updateAgent
+      tags: [agents]
+      summary: Update an agent (enable/disable, set project)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{id}/run:
+    post:
+      operationId: runAgent
+      tags: [agents]
+      summary: Trigger an agent run against a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentRunInput"
+      responses:
+        "202":
+          description: Run started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentRun"
+
+  /agents/{id}/runs:
+    get:
+      operationId: listAgentRuns
+      tags: [agents]
+      summary: List recent runs for an agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentRun"
+
+  /memory:
+    get:
+      operationId: listMemoryEntries
+      tags: [memory]
+      summary: List engineering memory entries
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Memory entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemoryEntry"
+    post:
+      operationId: createMemoryEntry
+      tags: [memory]
+      summary: Add a memory entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryEntry"
+
+  /memory/{id}:
+    patch:
+      operationId: updateMemoryEntry
+      tags: [memory]
+      summary: Update a memory entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemoryEntryUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryEntry"
+    delete:
+      operationId: deleteMemoryEntry
+      tags: [memory]
+      summary: Delete a memory entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /constitution:
+    get:
+      operationId: listConstitutionRules
+      tags: [constitution]
+      summary: List engineering constitution rules
+      responses:
+        "200":
+          description: Rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConstitutionRule"
+    post:
+      operationId: createConstitutionRule
+      tags: [constitution]
+      summary: Add a constitution rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstitutionRuleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstitutionRule"
+
+  /constitution/{id}:
+    patch:
+      operationId: updateConstitutionRule
+      tags: [constitution]
+      summary: Update a rule (enable/disable, change enforcement)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConstitutionRuleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConstitutionRule"
+    delete:
+      operationId: deleteConstitutionRule
+      tags: [constitution]
+      summary: Delete a rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
 components:
+  parameters:
+    AuthorizationSessionHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Opaque session token — `Bearer <sid>`.
+      schema:
+        type: string
+    SessionCookie:
+      name: sid
+      in: cookie
+      required: false
+      description: Browser session cookie.
+      schema:
+        type: string
+
   schemas:
     HealthStatus:
       type: object
@@ -496,6 +981,69 @@ components:
         status:
           type: string
       required: [status]
+
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, profileImageUrl]
+      properties:
+        id:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        profileImageUrl:
+          type: [string, 'null']
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: '#/components/schemas/AuthUser'
+            - type: 'null'
+    MobileTokenExchangeRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri, state]
+      properties:
+        code:
+          type: string
+          minLength: 1
+        code_verifier:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+          format: uri
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+    MobileTokenExchangeSuccess:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          const: true
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
 
     Project:
       type: object
@@ -509,10 +1057,8 @@ components:
           type: string
         status:
           type: string
-          description: "active | scanning | error | idle"
         healthScore:
           type: integer
-          description: "0-100"
         language:
           type: string
         branch:
@@ -582,10 +1128,8 @@ components:
           type: integer
         type:
           type: string
-          description: "typescript_error | build_failure | lint_error | security | missing_import | dependency_conflict"
         severity:
           type: string
-          description: "critical | high | medium | low"
         filePath:
           type: string
         message:
@@ -594,7 +1138,6 @@ components:
           type: ["integer", "null"]
         status:
           type: string
-          description: "open | in_progress | resolved"
         createdAt:
           type: string
 
@@ -610,10 +1153,8 @@ components:
           type: string
         type:
           type: string
-          description: "fix | feature | refactor | test | upgrade | scan"
         status:
           type: string
-          description: "pending | planning | awaiting_approval | running | completed | rejected | failed"
         prompt:
           type: string
         plan:
@@ -624,10 +1165,8 @@ components:
             type: string
         buildStatus:
           type: ["string", "null"]
-          description: "success | failed | null"
         confidenceScore:
           type: ["integer", "null"]
-          description: "0-100"
         createdAt:
           type: string
         completedAt:
@@ -682,7 +1221,6 @@ components:
           type: integer
         role:
           type: string
-          description: "user | assistant"
         content:
           type: string
         createdAt:
@@ -714,7 +1252,6 @@ components:
           type: ["string", "null"]
         status:
           type: string
-          description: "open | merged | closed"
         branch:
           type: string
         url:
@@ -738,7 +1275,6 @@ components:
           type: integer
         entityType:
           type: string
-          description: "project | task | pull_request | conversation"
         entityId:
           type: ["integer", "null"]
         action:
@@ -752,7 +1288,7 @@ components:
 
     DashboardSummary:
       type: object
-      required: [totalProjects, activeProjects, openTasks, awaitingApproval, openPullRequests, criticalIssues, avgHealthScore, tasksThisWeek]
+      required: [totalProjects, activeProjects, openTasks, awaitingApproval, openPullRequests, criticalIssues, avgHealthScore, tasksThisWeek, connectedDevices, agentsEnabled]
       properties:
         totalProjects:
           type: integer
@@ -770,6 +1306,10 @@ components:
           type: integer
         tasksThisWeek:
           type: integer
+        connectedDevices:
+          type: integer
+        agentsEnabled:
+          type: integer
 
     ActivityItem:
       type: object
@@ -779,7 +1319,6 @@ components:
           type: integer
         type:
           type: string
-          description: "task_completed | pr_opened | issue_found | scan_complete | pr_merged | task_approved"
         title:
           type: string
         description:
@@ -791,4 +1330,238 @@ components:
         severity:
           type: ["string", "null"]
         createdAt:
+          type: string
+
+    Device:
+      type: object
+      required: [id, userId, name, platform, status, pairingToken, createdAt, ollamaAvailable]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        name:
+          type: string
+        platform:
+          type: string
+          description: "windows | macos | linux"
+        status:
+          type: string
+          description: "online | offline | idle"
+        pairingToken:
+          type: string
+        agentVersion:
+          type: ["string", "null"]
+        ollamaAvailable:
+          type: boolean
+        ollamaVersion:
+          type: ["string", "null"]
+        activeModel:
+          type: ["string", "null"]
+        lastHeartbeatAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    DeviceInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        platform:
+          type: string
+
+    DeviceHeartbeat:
+      type: object
+      properties:
+        status:
+          type: string
+        ollamaAvailable:
+          type: boolean
+        ollamaVersion:
+          type: ["string", "null"]
+        activeModel:
+          type: ["string", "null"]
+        agentVersion:
+          type: ["string", "null"]
+
+    Agent:
+      type: object
+      required: [id, userId, type, name, description, enabled, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        type:
+          type: string
+          description: "repair | architecture | security | documentation"
+        name:
+          type: string
+        description:
+          type: string
+        enabled:
+          type: boolean
+        projectId:
+          type: ["integer", "null"]
+        lastRunAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    AgentInput:
+      type: object
+      required: [type, name, description]
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        projectId:
+          type: ["integer", "null"]
+
+    AgentUpdate:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        projectId:
+          type: ["integer", "null"]
+
+    AgentRun:
+      type: object
+      required: [id, agentId, projectId, status, createdAt]
+      properties:
+        id:
+          type: integer
+        agentId:
+          type: integer
+        projectId:
+          type: integer
+        status:
+          type: string
+          description: "running | completed | failed"
+        summary:
+          type: ["string", "null"]
+        recommendations:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+        completedAt:
+          type: ["string", "null"]
+
+    AgentRunInput:
+      type: object
+      required: [projectId]
+      properties:
+        projectId:
+          type: integer
+
+    MemoryEntry:
+      type: object
+      required: [id, userId, category, key, value, source, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        projectId:
+          type: ["integer", "null"]
+        category:
+          type: string
+          description: "architecture | fix | convention | preference | workflow"
+        key:
+          type: string
+        value:
+          type: string
+        source:
+          type: string
+          description: "manual | agent | scan"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    MemoryEntryInput:
+      type: object
+      required: [category, key, value]
+      properties:
+        category:
+          type: string
+          minLength: 1
+        key:
+          type: string
+          minLength: 1
+        value:
+          type: string
+          minLength: 1
+        projectId:
+          type: ["integer", "null"]
+        source:
+          type: string
+
+    MemoryEntryUpdate:
+      type: object
+      properties:
+        value:
+          type: string
+        category:
+          type: string
+
+    ConstitutionRule:
+      type: object
+      required: [id, userId, category, title, description, enforcement, enabled, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        category:
+          type: string
+          description: "language | security | structure | git | testing | architecture"
+        title:
+          type: string
+        description:
+          type: string
+        enforcement:
+          type: string
+          description: "block | warn | info"
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+
+    ConstitutionRuleInput:
+      type: object
+      required: [category, title, description]
+      properties:
+        category:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        enforcement:
+          type: string
+
+    ConstitutionRuleUpdate:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        enforcement:
+          type: string
+        title:
+          type: string
+        description:
           type: string

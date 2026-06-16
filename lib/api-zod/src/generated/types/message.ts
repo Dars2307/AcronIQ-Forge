@@ -9,7 +9,6 @@
 export interface Message {
   id: number;
   conversationId: number;
-  /** user | assistant */
   role: string;
   content: string;
   createdAt: string;

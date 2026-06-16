@@ -9,15 +9,12 @@
 export interface Issue {
   id: number;
   projectId: number;
-  /** typescript_error | build_failure | lint_error | security | missing_import | dependency_conflict */
   type: string;
-  /** critical | high | medium | low */
   severity: string;
   filePath: string;
   message: string;
   /** @nullable */
   line?: number | null;
-  /** open | in_progress | resolved */
   status: string;
   createdAt: string;
 }

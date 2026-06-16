@@ -1,0 +1,199 @@
+Forge Repository Intelligence & Persistent Memory Requirements
+
+Repository-Aware Development
+
+Forge must never generate code blindly.
+
+Before creating, modifying, or deleting files, Forge must analyse the repository and identify existing implementation patterns.
+
+Forge should prioritise consistency with the current project.
+
+The default rule is:
+
+“Follow existing repository patterns unless the user explicitly requests a different approach.”
+
+⸻
+
+Pattern Discovery Engine
+
+Before generating code, Forge should inspect:
+
+* Folder structure
+* File naming conventions
+* Import patterns
+* Service patterns
+* API architecture
+* Authentication architecture
+* Database structure
+* Existing utilities
+* Existing components
+
+Forge should identify:
+
+* How the project is organised
+* How developers previously solved similar problems
+* Existing conventions and standards
+
+Generated code should match repository conventions.
+
+⸻
+
+Database Intelligence
+
+Before generating SQL, migrations, policies, or database structures, Forge must analyse:
+
+* Existing SQL migrations
+* Existing schemas
+* Existing naming conventions
+* Existing indexes
+* Existing RLS policies
+* Existing database architecture
+
+Forge must not generate generic SQL when project-specific patterns already exist.
+
+Example:
+
+If previous migrations use:
+
+create table if not exists
+
+and
+
+created_at timestamptz not null default now()
+
+Forge should automatically follow those patterns.
+
+Database changes should feel as if they were written by the same engineering team.
+
+⸻
+
+Historical Code Learning
+
+Forge should continuously learn repository-specific patterns.
+
+Examples:
+
+* Preferred Supabase structure
+* Preferred API structure
+* Preferred TypeScript patterns
+* Preferred validation methods
+* Preferred component architecture
+
+Future generations should improve based on observed repository behaviour.
+
+⸻
+
+Engineering Memory
+
+Forge should maintain long-term engineering memory.
+
+Store:
+
+* Previous fixes
+* Architectural decisions
+* Repository conventions
+* Developer preferences
+* Common workflows
+* Previous migrations
+* Successful implementations
+
+Memory should improve future recommendations.
+
+⸻
+
+Task Continuity Memory
+
+Forge should persist task state.
+
+If:
+
+* Forge crashes
+* Device shuts down
+* Process stops
+* User closes Forge
+
+Forge should remember:
+
+* Active task
+* Execution progress
+* Modified files
+* Validation results
+* Pending actions
+
+Upon restart:
+
+Display:
+
+“Resume Previous Task”
+
+and continue from the last known state.
+
+⸻
+
+Project Knowledge Graph
+
+Forge should maintain an internal understanding of:
+
+* Projects
+* Files
+* Components
+* APIs
+* Services
+* Databases
+* Dependencies
+
+The knowledge graph should update automatically as repositories evolve.
+
+This knowledge should be used before generating code.
+
+⸻
+
+Background Operation
+
+Forge should support low-resource background operation.
+
+Requirements:
+
+* Minimal CPU usage when idle
+* Minimal memory usage when idle
+* Efficient file watching
+* Incremental indexing
+* No unnecessary repository scans
+
+Forge should not negatively impact developer workflows.
+
+⸻
+
+Prompt-Driven Development
+
+Forge must support commands such as:
+
+“Create a Supabase authentication system”
+
+“Create a billing module”
+
+“Add role-based access control”
+
+“Create a dashboard”
+
+Before implementation:
+
+1. Analyse repository
+2. Analyse previous implementations
+3. Analyse database structure
+4. Analyse architectural patterns
+5. Create execution plan
+6. Generate changes
+7. Validate changes
+
+The generated solution should match existing repository standards whenever possible.
+
+⸻
+
+Core Principle
+
+Forge is not a code generator.
+
+Forge is an engineering system that understands how a repository is built and extends it consistently.
+
+Every generated change should appear as though it was written by an experienced engineer already familiar with the project.

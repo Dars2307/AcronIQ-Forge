@@ -15,4 +15,6 @@ export interface DashboardSummary {
   criticalIssues: number;
   avgHealthScore: number;
   tasksThisWeek: number;
+  connectedDevices: number;
+  agentsEnabled: number;
 }

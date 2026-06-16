@@ -10,9 +10,7 @@ export interface Project {
   id: number;
   name: string;
   repoUrl: string;
-  /** active | scanning | error | idle */
   status: string;
-  /** 0-100 */
   healthScore: number;
   language: string;
   branch: string;

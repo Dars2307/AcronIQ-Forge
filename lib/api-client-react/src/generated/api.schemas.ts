@@ -9,13 +9,53 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface AuthUser {
+  id: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  firstName: string | null;
+  /** @nullable */
+  lastName: string | null;
+  /** @nullable */
+  profileImageUrl: string | null;
+}
+
+export interface AuthUserEnvelope {
+  user: AuthUser | null;
+}
+
+export interface MobileTokenExchangeRequest {
+  /** @minLength 1 */
+  code: string;
+  /** @minLength 1 */
+  code_verifier: string;
+  /** @minLength 1 */
+  redirect_uri: string;
+  /** @minLength 1 */
+  state: string;
+  /** @minLength 1 */
+  nonce?: string;
+}
+
+export interface MobileTokenExchangeSuccess {
+  token: string;
+}
+
+export const LogoutSuccessValue = {
+  success: true,
+} as const;
+export type LogoutSuccess = typeof LogoutSuccessValue;
+
+export interface ErrorEnvelope {
+  error: string;
+}
+
 export interface Project {
   id: number;
   name: string;
   repoUrl: string;
-  /** active | scanning | error | idle */
   status: string;
-  /** 0-100 */
   healthScore: number;
   language: string;
   branch: string;
@@ -56,15 +96,12 @@ export interface ProjectSummary {
 export interface Issue {
   id: number;
   projectId: number;
-  /** typescript_error | build_failure | lint_error | security | missing_import | dependency_conflict */
   type: string;
-  /** critical | high | medium | low */
   severity: string;
   filePath: string;
   message: string;
   /** @nullable */
   line?: number | null;
-  /** open | in_progress | resolved */
   status: string;
   createdAt: string;
 }
@@ -73,23 +110,15 @@ export interface Task {
   id: number;
   projectId: number;
   projectName?: string;
-  /** fix | feature | refactor | test | upgrade | scan */
   type: string;
-  /** pending | planning | awaiting_approval | running | completed | rejected | failed */
   status: string;
   prompt: string;
   /** @nullable */
   plan?: string | null;
   filesModified?: string[];
-  /**
-     * success | failed | null
-     * @nullable
-     */
+  /** @nullable */
   buildStatus?: string | null;
-  /**
-     * 0-100
-     * @nullable
-     */
+  /** @nullable */
   confidenceScore?: number | null;
   createdAt: string;
   /** @nullable */
@@ -124,7 +153,6 @@ export interface ConversationInput {
 export interface Message {
   id: number;
   conversationId: number;
-  /** user | assistant */
   role: string;
   content: string;
   createdAt: string;
@@ -144,7 +172,6 @@ export interface PullRequest {
   title: string;
   /** @nullable */
   description?: string | null;
-  /** open | merged | closed */
   status: string;
   branch: string;
   /** @nullable */
@@ -159,7 +186,6 @@ export interface PullRequest {
 
 export interface AuditEntry {
   id: number;
-  /** project | task | pull_request | conversation */
   entityType: string;
   /** @nullable */
   entityId?: number | null;
@@ -179,11 +205,12 @@ export interface DashboardSummary {
   criticalIssues: number;
   avgHealthScore: number;
   tasksThisWeek: number;
+  connectedDevices: number;
+  agentsEnabled: number;
 }
 
 export interface ActivityItem {
   id: number;
-  /** task_completed | pr_opened | issue_found | scan_complete | pr_merged | task_approved */
   type: string;
   title: string;
   description: string;
@@ -194,6 +221,169 @@ export interface ActivityItem {
   severity?: string | null;
   createdAt: string;
 }
+
+export interface Device {
+  id: number;
+  userId: string;
+  name: string;
+  /** windows | macos | linux */
+  platform: string;
+  /** online | offline | idle */
+  status: string;
+  pairingToken: string;
+  /** @nullable */
+  agentVersion?: string | null;
+  ollamaAvailable: boolean;
+  /** @nullable */
+  ollamaVersion?: string | null;
+  /** @nullable */
+  activeModel?: string | null;
+  /** @nullable */
+  lastHeartbeatAt?: string | null;
+  createdAt: string;
+}
+
+export interface DeviceInput {
+  /** @minLength 1 */
+  name: string;
+  platform?: string;
+}
+
+export interface DeviceHeartbeat {
+  status?: string;
+  ollamaAvailable?: boolean;
+  /** @nullable */
+  ollamaVersion?: string | null;
+  /** @nullable */
+  activeModel?: string | null;
+  /** @nullable */
+  agentVersion?: string | null;
+}
+
+export interface Agent {
+  id: number;
+  userId: string;
+  /** repair | architecture | security | documentation */
+  type: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  /** @nullable */
+  projectId?: number | null;
+  /** @nullable */
+  lastRunAt?: string | null;
+  createdAt: string;
+}
+
+export interface AgentInput {
+  type: string;
+  /** @minLength 1 */
+  name: string;
+  description: string;
+  /** @nullable */
+  projectId?: number | null;
+}
+
+export interface AgentUpdate {
+  enabled?: boolean;
+  /** @nullable */
+  projectId?: number | null;
+}
+
+export interface AgentRun {
+  id: number;
+  agentId: number;
+  projectId: number;
+  /** running | completed | failed */
+  status: string;
+  /** @nullable */
+  summary?: string | null;
+  recommendations?: string[];
+  createdAt: string;
+  /** @nullable */
+  completedAt?: string | null;
+}
+
+export interface AgentRunInput {
+  projectId: number;
+}
+
+export interface MemoryEntry {
+  id: number;
+  userId: string;
+  /** @nullable */
+  projectId?: number | null;
+  /** architecture | fix | convention | preference | workflow */
+  category: string;
+  key: string;
+  value: string;
+  /** manual | agent | scan */
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MemoryEntryInput {
+  /** @minLength 1 */
+  category: string;
+  /** @minLength 1 */
+  key: string;
+  /** @minLength 1 */
+  value: string;
+  /** @nullable */
+  projectId?: number | null;
+  source?: string;
+}
+
+export interface MemoryEntryUpdate {
+  value?: string;
+  category?: string;
+}
+
+export interface ConstitutionRule {
+  id: number;
+  userId: string;
+  /** language | security | structure | git | testing | architecture */
+  category: string;
+  title: string;
+  description: string;
+  /** block | warn | info */
+  enforcement: string;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface ConstitutionRuleInput {
+  /** @minLength 1 */
+  category: string;
+  /** @minLength 1 */
+  title: string;
+  /** @minLength 1 */
+  description: string;
+  enforcement?: string;
+}
+
+export interface ConstitutionRuleUpdate {
+  enabled?: boolean;
+  enforcement?: string;
+  title?: string;
+  description?: string;
+}
+
+/**
+ * Opaque session token — `Bearer <sid>`.
+ */
+export type AuthorizationSessionHeaderParameter = string;
+
+export type BeginBrowserLoginParams = {
+returnTo?: string;
+};
+
+export type HandleBrowserLoginCallbackParams = {
+code?: string;
+state?: string;
+iss?: string;
+};
 
 export type ListTasksParams = {
 /**
@@ -218,5 +408,16 @@ export type ListAuditEntriesParams = {
  * @nullable
  */
 entityType?: string | null;
+};
+
+export type ListMemoryEntriesParams = {
+/**
+ * @nullable
+ */
+projectId?: number | null;
+/**
+ * @nullable
+ */
+category?: string | null;
 };
 

@@ -8,7 +8,6 @@
 
 export interface ActivityItem {
   id: number;
-  /** task_completed | pr_opened | issue_found | scan_complete | pr_merged | task_approved */
   type: string;
   title: string;
   description: string;

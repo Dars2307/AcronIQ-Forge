@@ -6,8 +6,9 @@ import {
   pullRequestsTable,
   issuesTable,
   auditEntriesTable,
+  devicesTable,
+  agentsTable,
 } from "@workspace/db";
-import { avg } from "drizzle-orm";
 
 const router = Router();
 
@@ -30,6 +31,11 @@ router.get("/summary", async (_req, res) => {
     : 0;
   const tasksThisWeek = tasks.filter(t => t.createdAt >= oneWeekAgo).length;
 
+  const devices = await db.select().from(devicesTable);
+  const agents = await db.select().from(agentsTable);
+  const connectedDevices = devices.filter(d => d.status === "online").length;
+  const agentsEnabled = agents.filter(a => a.enabled).length;
+
   res.json({
     totalProjects,
     activeProjects,
@@ -39,6 +45,8 @@ router.get("/summary", async (_req, res) => {
     criticalIssues,
     avgHealthScore: avgHealth,
     tasksThisWeek,
+    connectedDevices,
+    agentsEnabled,
   });
 });
 

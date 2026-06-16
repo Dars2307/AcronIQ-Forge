@@ -10,23 +10,15 @@ export interface Task {
   id: number;
   projectId: number;
   projectName?: string;
-  /** fix | feature | refactor | test | upgrade | scan */
   type: string;
-  /** pending | planning | awaiting_approval | running | completed | rejected | failed */
   status: string;
   prompt: string;
   /** @nullable */
   plan?: string | null;
   filesModified?: string[];
-  /**
-     * success | failed | null
-     * @nullable
-     */
+  /** @nullable */
   buildStatus?: string | null;
-  /**
-     * 0-100
-     * @nullable
-     */
+  /** @nullable */
   confidenceScore?: number | null;
   createdAt: string;
   /** @nullable */

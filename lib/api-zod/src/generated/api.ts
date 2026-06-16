@@ -17,14 +17,93 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Get the currently authenticated user
+ */
+export const GetCurrentAuthUserHeader = zod.object({
+  "Authorization": zod.string().optional().describe('Opaque session token — `Bearer <sid>`.')
+})
+
+export const GetCurrentAuthUserResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string().email().nullable(),
+  "firstName": zod.string().nullable(),
+  "lastName": zod.string().nullable(),
+  "profileImageUrl": zod.string().nullable()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Start the browser OIDC login flow
+ */
+export const BeginBrowserLoginQueryParams = zod.object({
+  "returnTo": zod.coerce.string().optional()
+})
+
+
+/**
+ * @summary Complete the browser OIDC login flow
+ */
+export const HandleBrowserLoginCallbackQueryParams = zod.object({
+  "code": zod.coerce.string().optional(),
+  "state": zod.coerce.string().optional(),
+  "iss": zod.coerce.string().url().optional()
+})
+
+
+/**
+ * @summary Clear the session and begin OIDC logout
+ */
+export const LogoutBrowserSessionHeader = zod.object({
+  "Authorization": zod.string().optional().describe('Opaque session token — `Bearer <sid>`.')
+})
+
+
+/**
+ * @summary Exchange a mobile OIDC code for a session token
+ */
+
+
+
+
+
+
+
+export const ExchangeMobileAuthorizationCodeBody = zod.object({
+  "code": zod.string().min(1),
+  "code_verifier": zod.string().min(1),
+  "redirect_uri": zod.string().url().min(1),
+  "state": zod.string().min(1),
+  "nonce": zod.string().min(1).optional()
+})
+
+export const ExchangeMobileAuthorizationCodeResponse = zod.object({
+  "token": zod.string()
+})
+
+
+/**
+ * @summary Delete a mobile session token
+ */
+export const LogoutMobileSessionHeader = zod.object({
+  "Authorization": zod.string().optional().describe('Opaque session token — `Bearer <sid>`.')
+})
+
+export const LogoutMobileSessionResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary List all projects
  */
 export const ListProjectsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "repoUrl": zod.string(),
-  "status": zod.string().describe('active | scanning | error | idle'),
-  "healthScore": zod.number().describe('0-100'),
+  "status": zod.string(),
+  "healthScore": zod.number(),
   "language": zod.string(),
   "branch": zod.string(),
   "lastScanAt": zod.string().nullish(),
@@ -59,8 +138,8 @@ export const GetProjectResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "repoUrl": zod.string(),
-  "status": zod.string().describe('active | scanning | error | idle'),
-  "healthScore": zod.number().describe('0-100'),
+  "status": zod.string(),
+  "healthScore": zod.number(),
   "language": zod.string(),
   "branch": zod.string(),
   "lastScanAt": zod.string().nullish(),
@@ -87,8 +166,8 @@ export const UpdateProjectResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "repoUrl": zod.string(),
-  "status": zod.string().describe('active | scanning | error | idle'),
-  "healthScore": zod.number().describe('0-100'),
+  "status": zod.string(),
+  "healthScore": zod.number(),
   "language": zod.string(),
   "branch": zod.string(),
   "lastScanAt": zod.string().nullish(),
@@ -114,12 +193,12 @@ export const ListProjectIssuesParams = zod.object({
 export const ListProjectIssuesResponseItem = zod.object({
   "id": zod.number(),
   "projectId": zod.number(),
-  "type": zod.string().describe('typescript_error | build_failure | lint_error | security | missing_import | dependency_conflict'),
-  "severity": zod.string().describe('critical | high | medium | low'),
+  "type": zod.string(),
+  "severity": zod.string(),
   "filePath": zod.string(),
   "message": zod.string(),
   "line": zod.number().nullish(),
-  "status": zod.string().describe('open | in_progress | resolved'),
+  "status": zod.string(),
   "createdAt": zod.string()
 })
 export const ListProjectIssuesResponse = zod.array(ListProjectIssuesResponseItem)
@@ -164,13 +243,13 @@ export const ListTasksResponseItem = zod.object({
   "id": zod.number(),
   "projectId": zod.number(),
   "projectName": zod.string().optional(),
-  "type": zod.string().describe('fix | feature | refactor | test | upgrade | scan'),
-  "status": zod.string().describe('pending | planning | awaiting_approval | running | completed | rejected | failed'),
+  "type": zod.string(),
+  "status": zod.string(),
   "prompt": zod.string(),
   "plan": zod.string().nullish(),
   "filesModified": zod.array(zod.string()).optional(),
-  "buildStatus": zod.string().nullish().describe('success | failed | null'),
-  "confidenceScore": zod.number().nullish().describe('0-100'),
+  "buildStatus": zod.string().nullish(),
+  "confidenceScore": zod.number().nullish(),
   "createdAt": zod.string(),
   "completedAt": zod.string().nullish()
 })
@@ -201,13 +280,13 @@ export const GetTaskResponse = zod.object({
   "id": zod.number(),
   "projectId": zod.number(),
   "projectName": zod.string().optional(),
-  "type": zod.string().describe('fix | feature | refactor | test | upgrade | scan'),
-  "status": zod.string().describe('pending | planning | awaiting_approval | running | completed | rejected | failed'),
+  "type": zod.string(),
+  "status": zod.string(),
   "prompt": zod.string(),
   "plan": zod.string().nullish(),
   "filesModified": zod.array(zod.string()).optional(),
-  "buildStatus": zod.string().nullish().describe('success | failed | null'),
-  "confidenceScore": zod.number().nullish().describe('0-100'),
+  "buildStatus": zod.string().nullish(),
+  "confidenceScore": zod.number().nullish(),
   "createdAt": zod.string(),
   "completedAt": zod.string().nullish()
 })
@@ -224,13 +303,13 @@ export const ApproveTaskResponse = zod.object({
   "id": zod.number(),
   "projectId": zod.number(),
   "projectName": zod.string().optional(),
-  "type": zod.string().describe('fix | feature | refactor | test | upgrade | scan'),
-  "status": zod.string().describe('pending | planning | awaiting_approval | running | completed | rejected | failed'),
+  "type": zod.string(),
+  "status": zod.string(),
   "prompt": zod.string(),
   "plan": zod.string().nullish(),
   "filesModified": zod.array(zod.string()).optional(),
-  "buildStatus": zod.string().nullish().describe('success | failed | null'),
-  "confidenceScore": zod.number().nullish().describe('0-100'),
+  "buildStatus": zod.string().nullish(),
+  "confidenceScore": zod.number().nullish(),
   "createdAt": zod.string(),
   "completedAt": zod.string().nullish()
 })
@@ -247,13 +326,13 @@ export const RejectTaskResponse = zod.object({
   "id": zod.number(),
   "projectId": zod.number(),
   "projectName": zod.string().optional(),
-  "type": zod.string().describe('fix | feature | refactor | test | upgrade | scan'),
-  "status": zod.string().describe('pending | planning | awaiting_approval | running | completed | rejected | failed'),
+  "type": zod.string(),
+  "status": zod.string(),
   "prompt": zod.string(),
   "plan": zod.string().nullish(),
   "filesModified": zod.array(zod.string()).optional(),
-  "buildStatus": zod.string().nullish().describe('success | failed | null'),
-  "confidenceScore": zod.number().nullish().describe('0-100'),
+  "buildStatus": zod.string().nullish(),
+  "confidenceScore": zod.number().nullish(),
   "createdAt": zod.string(),
   "completedAt": zod.string().nullish()
 })
@@ -295,7 +374,7 @@ export const ListMessagesParams = zod.object({
 export const ListMessagesResponseItem = zod.object({
   "id": zod.number(),
   "conversationId": zod.number(),
-  "role": zod.string().describe('user | assistant'),
+  "role": zod.string(),
   "content": zod.string(),
   "createdAt": zod.string()
 })
@@ -331,7 +410,7 @@ export const ListPullRequestsResponseItem = zod.object({
   "taskId": zod.number().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
-  "status": zod.string().describe('open | merged | closed'),
+  "status": zod.string(),
   "branch": zod.string(),
   "url": zod.string().nullish(),
   "filesChanged": zod.number().optional(),
@@ -357,7 +436,7 @@ export const GetPullRequestResponse = zod.object({
   "taskId": zod.number().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
-  "status": zod.string().describe('open | merged | closed'),
+  "status": zod.string(),
   "branch": zod.string(),
   "url": zod.string().nullish(),
   "filesChanged": zod.number().optional(),
@@ -382,7 +461,7 @@ export const MergePullRequestResponse = zod.object({
   "taskId": zod.number().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
-  "status": zod.string().describe('open | merged | closed'),
+  "status": zod.string(),
   "branch": zod.string(),
   "url": zod.string().nullish(),
   "filesChanged": zod.number().optional(),
@@ -407,7 +486,7 @@ export const ClosePullRequestResponse = zod.object({
   "taskId": zod.number().nullish(),
   "title": zod.string(),
   "description": zod.string().nullish(),
-  "status": zod.string().describe('open | merged | closed'),
+  "status": zod.string(),
   "branch": zod.string(),
   "url": zod.string().nullish(),
   "filesChanged": zod.number().optional(),
@@ -427,7 +506,7 @@ export const ListAuditEntriesQueryParams = zod.object({
 
 export const ListAuditEntriesResponseItem = zod.object({
   "id": zod.number(),
-  "entityType": zod.string().describe('project | task | pull_request | conversation'),
+  "entityType": zod.string(),
   "entityId": zod.number().nullish(),
   "action": zod.string(),
   "actor": zod.string(),
@@ -448,7 +527,9 @@ export const GetDashboardSummaryResponse = zod.object({
   "openPullRequests": zod.number(),
   "criticalIssues": zod.number(),
   "avgHealthScore": zod.number(),
-  "tasksThisWeek": zod.number()
+  "tasksThisWeek": zod.number(),
+  "connectedDevices": zod.number(),
+  "agentsEnabled": zod.number()
 })
 
 
@@ -457,7 +538,7 @@ export const GetDashboardSummaryResponse = zod.object({
  */
 export const GetDashboardActivityResponseItem = zod.object({
   "id": zod.number(),
-  "type": zod.string().describe('task_completed | pr_opened | issue_found | scan_complete | pr_merged | task_approved'),
+  "type": zod.string(),
   "title": zod.string(),
   "description": zod.string(),
   "projectName": zod.string(),
@@ -466,5 +547,325 @@ export const GetDashboardActivityResponseItem = zod.object({
   "createdAt": zod.string()
 })
 export const GetDashboardActivityResponse = zod.array(GetDashboardActivityResponseItem)
+
+
+/**
+ * @summary List connected Forge Seed devices
+ */
+export const ListDevicesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "platform": zod.string().describe('windows | macos | linux'),
+  "status": zod.string().describe('online | offline | idle'),
+  "pairingToken": zod.string(),
+  "agentVersion": zod.string().nullish(),
+  "ollamaAvailable": zod.boolean(),
+  "ollamaVersion": zod.string().nullish(),
+  "activeModel": zod.string().nullish(),
+  "lastHeartbeatAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListDevicesResponse = zod.array(ListDevicesResponseItem)
+
+
+/**
+ * @summary Register a new device (generates pairing token)
+ */
+
+
+
+export const RegisterDeviceBody = zod.object({
+  "name": zod.string().min(1),
+  "platform": zod.string().optional()
+})
+
+
+/**
+ * @summary Get a device
+ */
+export const GetDeviceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetDeviceResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "platform": zod.string().describe('windows | macos | linux'),
+  "status": zod.string().describe('online | offline | idle'),
+  "pairingToken": zod.string(),
+  "agentVersion": zod.string().nullish(),
+  "ollamaAvailable": zod.boolean(),
+  "ollamaVersion": zod.string().nullish(),
+  "activeModel": zod.string().nullish(),
+  "lastHeartbeatAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Unlink a device
+ */
+export const DeleteDeviceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Device sends heartbeat with status update
+ */
+export const DeviceHeartbeatParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeviceHeartbeatBody = zod.object({
+  "status": zod.string().optional(),
+  "ollamaAvailable": zod.boolean().optional(),
+  "ollamaVersion": zod.string().nullish(),
+  "activeModel": zod.string().nullish(),
+  "agentVersion": zod.string().nullish()
+})
+
+export const DeviceHeartbeatResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "name": zod.string(),
+  "platform": zod.string().describe('windows | macos | linux'),
+  "status": zod.string().describe('online | offline | idle'),
+  "pairingToken": zod.string(),
+  "agentVersion": zod.string().nullish(),
+  "ollamaAvailable": zod.boolean(),
+  "ollamaVersion": zod.string().nullish(),
+  "activeModel": zod.string().nullish(),
+  "lastHeartbeatAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List all configured agents
+ */
+export const ListAgentsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "type": zod.string().describe('repair | architecture | security | documentation'),
+  "name": zod.string(),
+  "description": zod.string(),
+  "enabled": zod.boolean(),
+  "projectId": zod.number().nullish(),
+  "lastRunAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListAgentsResponse = zod.array(ListAgentsResponseItem)
+
+
+/**
+ * @summary Create an agent configuration
+ */
+
+
+
+export const CreateAgentBody = zod.object({
+  "type": zod.string(),
+  "name": zod.string().min(1),
+  "description": zod.string(),
+  "projectId": zod.number().nullish()
+})
+
+
+/**
+ * @summary Update an agent (enable/disable, set project)
+ */
+export const UpdateAgentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAgentBody = zod.object({
+  "enabled": zod.boolean().optional(),
+  "projectId": zod.number().nullish()
+})
+
+export const UpdateAgentResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "type": zod.string().describe('repair | architecture | security | documentation'),
+  "name": zod.string(),
+  "description": zod.string(),
+  "enabled": zod.boolean(),
+  "projectId": zod.number().nullish(),
+  "lastRunAt": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Trigger an agent run against a project
+ */
+export const RunAgentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RunAgentBody = zod.object({
+  "projectId": zod.number()
+})
+
+
+/**
+ * @summary List recent runs for an agent
+ */
+export const ListAgentRunsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListAgentRunsResponseItem = zod.object({
+  "id": zod.number(),
+  "agentId": zod.number(),
+  "projectId": zod.number(),
+  "status": zod.string().describe('running | completed | failed'),
+  "summary": zod.string().nullish(),
+  "recommendations": zod.array(zod.string()).optional(),
+  "createdAt": zod.string(),
+  "completedAt": zod.string().nullish()
+})
+export const ListAgentRunsResponse = zod.array(ListAgentRunsResponseItem)
+
+
+/**
+ * @summary List engineering memory entries
+ */
+export const ListMemoryEntriesQueryParams = zod.object({
+  "projectId": zod.coerce.number().nullish(),
+  "category": zod.coerce.string().nullish()
+})
+
+export const ListMemoryEntriesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "projectId": zod.number().nullish(),
+  "category": zod.string().describe('architecture | fix | convention | preference | workflow'),
+  "key": zod.string(),
+  "value": zod.string(),
+  "source": zod.string().describe('manual | agent | scan'),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListMemoryEntriesResponse = zod.array(ListMemoryEntriesResponseItem)
+
+
+/**
+ * @summary Add a memory entry
+ */
+
+
+
+
+
+export const CreateMemoryEntryBody = zod.object({
+  "category": zod.string().min(1),
+  "key": zod.string().min(1),
+  "value": zod.string().min(1),
+  "projectId": zod.number().nullish(),
+  "source": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a memory entry
+ */
+export const UpdateMemoryEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateMemoryEntryBody = zod.object({
+  "value": zod.string().optional(),
+  "category": zod.string().optional()
+})
+
+export const UpdateMemoryEntryResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "projectId": zod.number().nullish(),
+  "category": zod.string().describe('architecture | fix | convention | preference | workflow'),
+  "key": zod.string(),
+  "value": zod.string(),
+  "source": zod.string().describe('manual | agent | scan'),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a memory entry
+ */
+export const DeleteMemoryEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List engineering constitution rules
+ */
+export const ListConstitutionRulesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "category": zod.string().describe('language | security | structure | git | testing | architecture'),
+  "title": zod.string(),
+  "description": zod.string(),
+  "enforcement": zod.string().describe('block | warn | info'),
+  "enabled": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListConstitutionRulesResponse = zod.array(ListConstitutionRulesResponseItem)
+
+
+/**
+ * @summary Add a constitution rule
+ */
+
+
+
+
+
+export const CreateConstitutionRuleBody = zod.object({
+  "category": zod.string().min(1),
+  "title": zod.string().min(1),
+  "description": zod.string().min(1),
+  "enforcement": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a rule (enable/disable, change enforcement)
+ */
+export const UpdateConstitutionRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateConstitutionRuleBody = zod.object({
+  "enabled": zod.boolean().optional(),
+  "enforcement": zod.string().optional(),
+  "title": zod.string().optional(),
+  "description": zod.string().optional()
+})
+
+export const UpdateConstitutionRuleResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "category": zod.string().describe('language | security | structure | git | testing | architecture'),
+  "title": zod.string(),
+  "description": zod.string(),
+  "enforcement": zod.string().describe('block | warn | info'),
+  "enabled": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a rule
+ */
+export const DeleteConstitutionRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
 
 

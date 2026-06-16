@@ -1,0 +1,270 @@
+Forge V1 Rebuild Specification
+
+Build Forge as a real product, not a demonstration.
+
+Remove all fake projects, fake analysis, placeholder repositories, simulated reports, and hardcoded examples.
+
+Forge must start empty and only display information obtained from the user’s machine.
+
+Product Overview
+
+Forge is an autonomous software engineering assistant consisting of:
+
+1. Forge Web Application
+2. Forge Seed Desktop Agent
+
+The desktop agent performs local operations.
+
+The web application acts as the command centre.
+
+The desktop agent and web application communicate through a secure authenticated connection.
+
+⸻
+
+First-Time User Experience
+
+When a user opens Forge for the first time:
+
+Display:
+
+“No projects connected.”
+
+Provide a button:
+
+“Install Forge Seed”
+
+The user downloads the correct installer for:
+
+* Windows 10
+* Windows 11
+
+Future support:
+
+* macOS
+* Linux
+
+⸻
+
+Forge Seed Installation
+
+Installation flow:
+
+Step 1:
+Welcome Screen
+
+Step 2:
+Licence Agreement
+
+Step 3:
+Installation Location
+
+Provide a sensible default installation path.
+
+Step 4:
+Request permissions required for operation.
+
+Do not require administrator access on every launch.
+
+Administrator access should only be requested during installation, updates, or privileged operations.
+
+Step 5:
+Launch Forge Seed
+
+⸻
+
+Initial Project Setup
+
+After installation:
+
+Display:
+
+“Select project folders to monitor.”
+
+Allow users to choose one or more folders.
+
+Examples:
+
+* Accounts
+* AccountsIQ Web
+* AccountsIQ Prism
+* Canon
+* Atlas
+* BusinessHub
+
+Forge must support any project folder.
+
+Do not hardcode project names.
+
+Store approved folders securely.
+
+Allow users to:
+
+* Add folders
+* Remove folders
+* Pause monitoring
+* Resume monitoring
+
+⸻
+
+Project Analysis Engine
+
+Once a folder is added:
+
+Scan:
+
+* package.json
+* tsconfig.json
+* next.config.ts
+* src
+* app
+* components
+* lib
+* services
+
+Generate:
+
+* Project name
+* Framework
+* Dependencies
+* Build commands
+* Repository information
+
+Store metadata locally.
+
+⸻
+
+AI Architecture
+
+Forge must support three modes:
+
+Mode 1:
+No AI
+
+Mode 2:
+Local AI
+
+Mode 3:
+Cloud AI
+
+Default to Local AI.
+
+⸻
+
+Local AI Support
+
+Primary integration:
+
+Ollama
+
+Supported models:
+
+* DeepSeek Coder
+* Qwen Coder
+* Future local models
+
+If Ollama is unavailable:
+
+Forge continues operating with non-AI features.
+
+⸻
+
+Prompt Driven Engineering
+
+Users can submit prompts such as:
+
+“Fix TypeScript errors”
+
+“Create an authentication system”
+
+“Refactor the dashboard”
+
+“Upgrade Next.js”
+
+“Generate tests”
+
+Forge should:
+
+1. Analyse request
+2. Identify affected files
+3. Create execution plan
+4. Generate changes
+5. Validate changes
+6. Present review
+
+⸻
+
+Validation Pipeline
+
+Forge must never claim a fix is successful without verification.
+
+After modifications run:
+
+tsc –noEmit
+
+npm run lint
+
+npm run test
+
+npm run build
+
+Present:
+
+Files Changed
+Validation Results
+Build Results
+Confidence Score
+
+⸻
+
+Git Integration
+
+Support:
+
+* Git repositories
+* Branch creation
+* Commits
+* Push operations
+* Pull requests
+
+Every action must be auditable.
+
+⸻
+
+Web Dashboard
+
+Sections:
+
+Dashboard
+
+Projects
+
+Chat
+
+Tasks
+
+Validation Reports
+
+Git Activity
+
+Settings
+
+Agent Status
+
+⸻
+
+Long-Term Vision
+
+Forge evolves into an autonomous software engineering platform.
+
+Future capabilities:
+
+* Repository memory
+* Architecture understanding
+* Technical debt tracking
+* Autonomous maintenance
+* Dependency upgrades
+* Security analysis
+* Multi-repository intelligence
+* Software engineering agent teams
+
+The objective is to create a system that understands software, validates its own work, and assists developers with maintaining and evolving complex applications.

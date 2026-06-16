@@ -8,7 +8,6 @@
 
 export interface AuditEntry {
   id: number;
-  /** project | task | pull_request | conversation */
   entityType: string;
   /** @nullable */
   entityId?: number | null;

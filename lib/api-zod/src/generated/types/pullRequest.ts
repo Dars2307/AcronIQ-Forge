@@ -15,7 +15,6 @@ export interface PullRequest {
   title: string;
   /** @nullable */
   description?: string | null;
-  /** open | merged | closed */
   status: string;
   branch: string;
   /** @nullable */
