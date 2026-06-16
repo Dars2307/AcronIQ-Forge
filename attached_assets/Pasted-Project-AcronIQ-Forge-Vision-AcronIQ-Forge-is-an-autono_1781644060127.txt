@@ -1,0 +1,279 @@
+Project: AcronIQ Forge
+
+Vision
+
+AcronIQ Forge is an autonomous software engineering platform designed to understand, maintain, improve, and evolve software systems with minimal developer intervention.
+
+Unlike traditional AI coding assistants that only generate code snippets, Forge acts as an engineering agent capable of analysing entire repositories, diagnosing problems, implementing fixes, validating changes, and creating deployable pull requests.
+
+Forge consists of two major components:
+
+1. Forge Desktop Agent
+2. Forge Web Control Centre
+
+The desktop agent runs locally on the developer’s machine and has access to authorised project folders.
+
+The web control centre serves as the primary interface for communication, monitoring, approvals, analytics, and orchestration.
+
+⸻
+
+Core Objective
+
+Create an AI-powered software engineering agent that can:
+
+* Read project folders
+* Understand application architecture
+* Detect errors
+* Implement fixes
+* Execute development tasks from prompts
+* Create commits and pull requests
+* Monitor project health
+* Assist developers throughout the software lifecycle
+
+The goal is to reduce software maintenance effort while keeping developers in control.
+
+⸻
+
+Product Architecture
+
+Forge Desktop Agent
+
+Technology:
+
+* Tauri
+* Rust
+* Node.js Runtime
+* TypeScript
+
+Responsibilities:
+
+* Secure filesystem access
+* Project indexing
+* File editing
+* Local command execution
+* Build monitoring
+* Test execution
+* Git operations
+
+Capabilities:
+
+* Read project files
+* Modify files
+* Create new files
+* Delete files when approved
+* Run npm commands
+* Run linting
+* Run TypeScript validation
+* Run builds
+* Communicate with backend securely
+
+⸻
+
+Forge Web Control Centre
+
+Technology:
+
+* Next.js
+* TypeScript
+* Tailwind
+* Supabase
+
+Responsibilities:
+
+* Chat interface
+* Project dashboard
+* AI interaction
+* Repository monitoring
+* Pull request management
+* Approval workflows
+* Audit logging
+
+⸻
+
+AI Engineering Capabilities
+
+Code Understanding Engine
+
+Forge must analyse:
+
+* Next.js applications
+* Node.js applications
+* TypeScript projects
+* Express APIs
+* Supabase integrations
+* PostgreSQL schemas
+
+The system should build an internal graph containing:
+
+* Routes
+* Components
+* Services
+* Database usage
+* API endpoints
+* Dependencies
+* Authentication systems
+
+The AI must understand relationships between files before making modifications.
+
+⸻
+
+Error Detection Engine
+
+Continuously monitor projects for:
+
+* TypeScript errors
+* Build failures
+* Runtime issues
+* Missing imports
+* Dependency conflicts
+* Invalid configurations
+* Security concerns
+
+Commands:
+
+npm run build
+
+npm run lint
+
+tsc –noEmit
+
+Errors should be categorised by severity and confidence.
+
+⸻
+
+Prompt Driven Development
+
+Developers can issue prompts such as:
+
+“Fix all TypeScript errors”
+
+“Create a user management dashboard”
+
+“Upgrade the application to the latest Next.js version”
+
+“Implement Supabase RBAC”
+
+“Refactor the authentication module”
+
+“Create unit tests for all API routes”
+
+The AI should:
+
+1. Analyse request
+2. Create execution plan
+3. Identify affected files
+4. Generate changes
+5. Validate changes
+6. Present review
+7. Apply after approval
+
+⸻
+
+Autonomous Repair Engine
+
+When issues are discovered:
+
+1. Diagnose root cause
+2. Generate solution
+3. Apply changes
+4. Run tests
+5. Validate build
+6. Generate report
+
+Output:
+
+Issue Found
+Files Modified
+Tests Executed
+Build Status
+Confidence Score
+
+⸻
+
+GitHub Integration
+
+Capabilities:
+
+* Clone repositories
+* Create branches
+* Commit changes
+* Push updates
+* Open pull requests
+* Merge approved pull requests
+
+Every change must be traceable through audit logs.
+
+⸻
+
+Long-Term Vision
+
+Forge should evolve beyond code fixing.
+
+The ultimate goal is to become a complete autonomous software engineer.
+
+Future capabilities:
+
+Engineering Memory
+
+Forge remembers:
+
+* Previous decisions
+* Architectural patterns
+* Coding standards
+* Past fixes
+* Developer preferences
+
+Architecture Intelligence
+
+Forge understands:
+
+* Entire system architecture
+* Technical debt
+* Dependency risks
+* Scaling concerns
+
+It can recommend strategic improvements before issues appear.
+
+Autonomous Maintenance
+
+Forge continuously:
+
+* Monitors repositories
+* Detects regressions
+* Fixes errors
+* Updates dependencies
+* Creates pull requests
+* Generates documentation
+
+without requiring manual discovery of problems.
+
+Multi-Repository Intelligence
+
+Forge understands relationships between:
+
+* Atlas
+* BusinessHub
+* Canon
+* AcronIQ Websites
+* Internal Services
+
+Changes in one repository can be analysed for impact across the entire ecosystem.
+
+AI Engineering Team
+
+Future agent roles:
+
+* Backend Engineer
+* Frontend Engineer
+* QA Engineer
+* Security Engineer
+* DevOps Engineer
+* Documentation Engineer
+
+Each specialised agent collaborates under a central orchestration layer.
+
+Final Vision
+
+Forge becomes an autonomous engineering operating system capable of maintaining, improving, and evolving software products while developers focus on business strategy, product direction, and innovation.
+
+The objective is not to replace developers but to eliminate repetitive engineering work and dramatically increase development velocity.

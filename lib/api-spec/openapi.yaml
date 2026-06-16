@@ -1,22 +1,32 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AcronIQ Forge API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: projects
+    description: Project management
+  - name: tasks
+    description: Engineering tasks
+  - name: conversations
+    description: AI chat conversations
+  - name: pullRequests
+    description: Pull request management
+  - name: audit
+    description: Audit log
+  - name: dashboard
+    description: Dashboard summaries
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +34,460 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Add a project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Remove a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{id}/issues:
+    get:
+      operationId: listProjectIssues
+      tags: [projects]
+      summary: List issues detected in a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Issue"
+
+  /projects/{id}/scan:
+    post:
+      operationId: triggerScan
+      tags: [projects]
+      summary: Trigger a project scan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "202":
+          description: Scan queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /projects/{id}/summary:
+    get:
+      operationId: getProjectSummary
+      tags: [projects]
+      summary: Get health summary for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectSummary"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List all tasks
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Submit a prompt-driven engineering task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found
+
+  /tasks/{id}/approve:
+    patch:
+      operationId: approveTask
+      tags: [tasks]
+      summary: Approve a task for execution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{id}/reject:
+    patch:
+      operationId: rejectTask
+      tags: [tasks]
+      summary: Reject a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [conversations]
+      summary: List all conversations
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [conversations]
+      summary: Start a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /conversations/{id}/messages:
+    get:
+      operationId: listMessages
+      tags: [conversations]
+      summary: Get messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [conversations]
+      summary: Send a message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Message sent (AI reply included)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /pull-requests:
+    get:
+      operationId: listPullRequests
+      tags: [pullRequests]
+      summary: List all pull requests
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Pull requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PullRequest"
+
+  /pull-requests/{id}:
+    get:
+      operationId: getPullRequest
+      tags: [pullRequests]
+      summary: Get a pull request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: PR
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullRequest"
+
+  /pull-requests/{id}/merge:
+    patch:
+      operationId: mergePullRequest
+      tags: [pullRequests]
+      summary: Merge a pull request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Merged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullRequest"
+
+  /pull-requests/{id}/close:
+    patch:
+      operationId: closePullRequest
+      tags: [pullRequests]
+      summary: Close a pull request without merging
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullRequest"
+
+  /audit:
+    get:
+      operationId: listAuditEntries
+      tags: [audit]
+      summary: List audit log entries
+      parameters:
+        - name: entityType
+          in: query
+          required: false
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Audit entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditEntry"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get overall platform statistics
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/activity:
+    get:
+      operationId: getDashboardActivity
+      tags: [dashboard]
+      summary: Get recent activity feed
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +495,300 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Project:
+      type: object
+      required: [id, name, repoUrl, status, healthScore, language, branch, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        repoUrl:
+          type: string
+        status:
+          type: string
+          description: "active | scanning | error | idle"
+        healthScore:
+          type: integer
+          description: "0-100"
+        language:
+          type: string
+        branch:
+          type: string
+        lastScanAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    ProjectInput:
+      type: object
+      required: [name, repoUrl]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        repoUrl:
+          type: string
+          minLength: 1
+        language:
+          type: string
+        branch:
+          type: string
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        repoUrl:
+          type: string
+        language:
+          type: string
+        branch:
+          type: string
+        status:
+          type: string
+
+    ProjectSummary:
+      type: object
+      required: [projectId, healthScore, openIssues, criticalIssues, lastScanAt, filesIndexed, openTasks, openPullRequests]
+      properties:
+        projectId:
+          type: integer
+        healthScore:
+          type: integer
+        openIssues:
+          type: integer
+        criticalIssues:
+          type: integer
+        lastScanAt:
+          type: ["string", "null"]
+        filesIndexed:
+          type: integer
+        openTasks:
+          type: integer
+        openPullRequests:
+          type: integer
+
+    Issue:
+      type: object
+      required: [id, projectId, type, severity, filePath, message, status, createdAt]
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        type:
+          type: string
+          description: "typescript_error | build_failure | lint_error | security | missing_import | dependency_conflict"
+        severity:
+          type: string
+          description: "critical | high | medium | low"
+        filePath:
+          type: string
+        message:
+          type: string
+        line:
+          type: ["integer", "null"]
+        status:
+          type: string
+          description: "open | in_progress | resolved"
+        createdAt:
+          type: string
+
+    Task:
+      type: object
+      required: [id, projectId, type, status, prompt, createdAt]
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        projectName:
+          type: string
+        type:
+          type: string
+          description: "fix | feature | refactor | test | upgrade | scan"
+        status:
+          type: string
+          description: "pending | planning | awaiting_approval | running | completed | rejected | failed"
+        prompt:
+          type: string
+        plan:
+          type: ["string", "null"]
+        filesModified:
+          type: array
+          items:
+            type: string
+        buildStatus:
+          type: ["string", "null"]
+          description: "success | failed | null"
+        confidenceScore:
+          type: ["integer", "null"]
+          description: "0-100"
+        createdAt:
+          type: string
+        completedAt:
+          type: ["string", "null"]
+
+    TaskInput:
+      type: object
+      required: [projectId, prompt]
+      properties:
+        projectId:
+          type: integer
+        prompt:
+          type: string
+          minLength: 1
+        type:
+          type: string
+
+    Conversation:
+      type: object
+      required: [id, title, projectId, createdAt, messageCount]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        projectId:
+          type: ["integer", "null"]
+        projectName:
+          type: ["string", "null"]
+        messageCount:
+          type: integer
+        createdAt:
+          type: string
+
+    ConversationInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        projectId:
+          type: ["integer", "null"]
+
+    Message:
+      type: object
+      required: [id, conversationId, role, content, createdAt]
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+          description: "user | assistant"
+        content:
+          type: string
+        createdAt:
+          type: string
+
+    MessageInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+
+    PullRequest:
+      type: object
+      required: [id, projectId, title, status, branch, createdAt]
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: integer
+        projectName:
+          type: string
+        taskId:
+          type: ["integer", "null"]
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          description: "open | merged | closed"
+        branch:
+          type: string
+        url:
+          type: ["string", "null"]
+        filesChanged:
+          type: integer
+        additions:
+          type: integer
+        deletions:
+          type: integer
+        createdAt:
+          type: string
+        mergedAt:
+          type: ["string", "null"]
+
+    AuditEntry:
+      type: object
+      required: [id, entityType, action, actor, createdAt]
+      properties:
+        id:
+          type: integer
+        entityType:
+          type: string
+          description: "project | task | pull_request | conversation"
+        entityId:
+          type: ["integer", "null"]
+        action:
+          type: string
+        actor:
+          type: string
+        details:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    DashboardSummary:
+      type: object
+      required: [totalProjects, activeProjects, openTasks, awaitingApproval, openPullRequests, criticalIssues, avgHealthScore, tasksThisWeek]
+      properties:
+        totalProjects:
+          type: integer
+        activeProjects:
+          type: integer
+        openTasks:
+          type: integer
+        awaitingApproval:
+          type: integer
+        openPullRequests:
+          type: integer
+        criticalIssues:
+          type: integer
+        avgHealthScore:
+          type: integer
+        tasksThisWeek:
+          type: integer
+
+    ActivityItem:
+      type: object
+      required: [id, type, title, description, projectName, createdAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          description: "task_completed | pr_opened | issue_found | scan_complete | pr_merged | task_approved"
+        title:
+          type: string
+        description:
+          type: string
+        projectName:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        severity:
+          type: ["string", "null"]
+        createdAt:
+          type: string
