@@ -193,7 +193,15 @@ export default function Devices() {
 
             {/* Download button */}
             <div className="mb-8">
-              <button className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-xl transition-colors text-sm">
+              <button
+                onClick={() => {
+                  toast({
+                    title: "Forge Seed installer coming soon",
+                    description: "We're packaging the v0.1.0 Windows installer. You'll be notified when it's ready to download.",
+                  });
+                }}
+                className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 px-6 rounded-xl transition-colors text-sm"
+              >
                 <Laptop className="h-4 w-4" />
                 Download Forge Seed for Windows
                 <Badge variant="secondary" className="text-[10px] ml-1 bg-primary-foreground/20 text-primary-foreground border-0">v0.1.0</Badge>
