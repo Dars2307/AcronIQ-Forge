@@ -216,13 +216,9 @@ export default function Devices() {
                 </p>
 
                 <div className="mb-8 flex flex-col items-center gap-2">
-                  <button
-                    onClick={() =>
-                      toast({
-                        title: "Forge Seed installer coming soon",
-                        description: "We're packaging the v0.1.0 Windows installer. You'll be notified when it's ready.",
-                      })
-                    }
+                  <a
+                    href="/downloads/forge-seed.exe"
+                    download="forge-seed.exe"
                     className="inline-flex items-center gap-2.5 rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 transition-all hover:bg-violet-500 active:scale-[0.98]"
                   >
                     <Download className="h-4 w-4" />
@@ -230,7 +226,7 @@ export default function Devices() {
                     <Badge variant="secondary" className="ml-1 border-0 bg-white/20 text-[10px] text-white">
                       v0.1.0
                     </Badge>
-                  </button>
+                  </a>
                   <p className="text-xs text-muted-foreground/60">macOS and Linux support coming soon</p>
                 </div>
 

@@ -1,0 +1,34 @@
+{
+  "name": "@workspace/forge-seed",
+  "version": "0.1.0",
+  "description": "Forge Seed — local agent for AcronIQ Forge",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/bundle.js",
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node20 --outfile=dist/bundle.js --external:chokidar",
+    "build:win": "pnpm run build && pkg dist/bundle.js --target node20-win-x64 --output dist/forge-seed.exe --compress GZip",
+    "build:pkg": "pkg dist/bundle.js --target node20-win-x64 --output dist/forge-seed.exe",
+    "dev": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "bin": {
+    "forge-seed": "./dist/bundle.js"
+  },
+  "pkg": {
+    "assets": [],
+    "targets": ["node20-win-x64"],
+    "outputPath": "dist"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vercel/ncc": "^0.38.3",
+    "esbuild": "^0.25.0",
+    "pkg": "^5.8.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

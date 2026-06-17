@@ -363,19 +363,15 @@ function ForgeSeedTab() {
           <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-3">
             <div>
               <p className="text-sm font-medium">Windows 10 / 11</p>
-              <p className="text-xs text-muted-foreground">x64 installer · Forge Seed v0.1.0</p>
+              <p className="text-xs text-muted-foreground">x64 · Forge Seed v0.1.0 · 37 MB</p>
             </div>
-            <button
-              onClick={() =>
-                toast({
-                  title: "Forge Seed installer coming soon",
-                  description: "We're packaging the v0.1.0 installer. You'll be notified when it's ready.",
-                })
-              }
+            <a
+              href="/downloads/forge-seed.exe"
+              download="forge-seed.exe"
               className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-xs font-medium text-white transition-all hover:bg-violet-500"
             >
               <Download className="h-3.5 w-3.5" /> Download
-            </button>
+            </a>
           </div>
           <p className="text-xs text-muted-foreground/60">macOS and Linux support coming soon.</p>
         </CardContent>

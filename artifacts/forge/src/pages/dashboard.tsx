@@ -66,11 +66,12 @@ export default function Dashboard() {
                   Install Forge Seed on your machine to begin monitoring your repositories and running autonomous agents.
                 </p>
               </div>
-              <Link href="/devices">
-                <a className="shrink-0 flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 transition-all hover:bg-violet-500 active:scale-[0.98]">
-                  Install Forge Seed
-                  <ArrowRight className="h-4 w-4" />
-                </a>
+              <Link
+                href="/devices"
+                className="shrink-0 flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 transition-all hover:bg-violet-500 active:scale-[0.98]"
+              >
+                Install Forge Seed
+                <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
