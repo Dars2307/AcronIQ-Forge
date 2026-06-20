@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useListProjects, getListProjectsQueryKey, useCreateProject } from "@workspace/api-client-react";
+import { useListProjects, getListProjectsQueryKey, useCreateProject, useTriggerScan, useGetProjectSummary, getGetProjectSummaryQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Activity, GitBranch, Clock, TerminalSquare, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Plus, Search, Activity, GitBranch, Clock, TerminalSquare, AlertTriangle, ShieldCheck, FileCode, RefreshCw, Scan } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ export default function Projects() {
   });
 
   const createProject = useCreateProject();
+  const triggerScan = useTriggerScan();
 
   const form = useForm<z.infer<typeof createProjectSchema>>({
     resolver: zodResolver(createProjectSchema),
@@ -50,6 +51,17 @@ export default function Projects() {
           queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
           setIsCreateOpen(false);
           form.reset();
+        },
+      }
+    );
+  };
+
+  const handleTriggerScan = (projectId: number) => {
+    triggerScan.mutate(
+      { id: projectId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
         },
       }
     );
@@ -223,6 +235,18 @@ export default function Projects() {
                         ></div>
                       </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <FileCode className="h-3 w-3" />
+                        <span>Files indexed</span>
+                      </div>
+                      <span className="font-mono text-foreground">--</span>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span>Open issues</span>
+                      </div>
+                      <span className="font-mono text-foreground">--</span>
+                    </div>
                     <div className="flex gap-4">
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <GitBranch className="h-3 w-3" />
@@ -234,13 +258,28 @@ export default function Projects() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-3 border-t border-border/50 text-xs text-muted-foreground flex items-center gap-1 bg-secondary/20">
-                  <Clock className="h-3 w-3" />
-                  {project.lastScanAt ? (
-                    <span>Last scanned {formatDistanceToNow(new Date(project.lastScanAt))} ago</span>
-                  ) : (
-                    <span>Never scanned</span>
-                  )}
+                <CardFooter className="pt-3 border-t border-border/50 text-xs text-muted-foreground flex items-center justify-between bg-secondary/20">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {project.lastScanAt ? (
+                      <span>Last scanned {formatDistanceToNow(new Date(project.lastScanAt))} ago</span>
+                    ) : (
+                      <span>Never scanned</span>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleTriggerScan(project.id);
+                    }}
+                    disabled={triggerScan.isPending}
+                  >
+                    <Scan className="h-3 w-3 mr-1" />
+                    Scan
+                  </Button>
                 </CardFooter>
               </Card>
             </Link>
