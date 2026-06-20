@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, Brain, Shield, Laptop, Download } from "lucide-react";
+import { Trash2, Plus, Brain, Shield, Laptop, Download, Cpu, Cloud, Server } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -338,6 +338,165 @@ function ConstitutionTab() {
   );
 }
 
+function AIConfigTab() {
+  const [aiMode, setAiMode] = useState<"none" | "local" | "cloud">("local");
+  const [ollamaEndpoint, setOllamaEndpoint] = useState("http://localhost:11434");
+  const [selectedModel, setSelectedModel] = useState("deepseek-coder");
+  const { toast } = useToast();
+
+  const handleSave = () => {
+    toast({ title: "AI configuration saved", description: "Your AI settings have been updated." });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-base font-semibold">AI Configuration</h3>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Configure how Forge uses AI for code analysis and generation.
+        </p>
+      </div>
+
+      {/* AI Mode Selection */}
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">AI Mode</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3">
+            {[
+              {
+                value: "none",
+                icon: Server,
+                title: "No AI",
+                description: "Forge operates without AI capabilities. Manual analysis only.",
+                color: "text-muted-foreground bg-muted/50 border-muted",
+              },
+              {
+                value: "local",
+                icon: Cpu,
+                title: "Local AI",
+                description: "Uses Ollama for local AI processing. Data stays on your machine.",
+                color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+              },
+              {
+                value: "cloud",
+                icon: Cloud,
+                title: "Cloud AI",
+                description: "Uses cloud-based AI services. Requires internet connection.",
+                color: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+              },
+            ].map(({ value, icon: Icon, title, description, color }) => (
+              <button
+                key={value}
+                onClick={() => setAiMode(value as any)}
+                className={`flex items-start gap-3 rounded-xl border p-4 text-left transition-all ${
+                  aiMode === value
+                    ? `${color} ring-2 ring-violet-500/50`
+                    : "border-border bg-card hover:border-violet-500/20"
+                }`}
+              >
+                <Icon className={`h-5 w-5 shrink-0 ${aiMode === value ? "" : "text-muted-foreground"}`} />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{title}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{description}</p>
+                </div>
+                {aiMode === value && (
+                  <div className="h-2 w-2 rounded-full bg-violet-400" />
+                )}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Local AI Configuration */}
+      {aiMode === "local" && (
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Cpu className="h-4 w-4 text-emerald-400" />
+              <CardTitle className="text-sm">Local AI Settings</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ollama-endpoint">Ollama Endpoint</Label>
+              <Input
+                id="ollama-endpoint"
+                value={ollamaEndpoint}
+                onChange={(e) => setOllamaEndpoint(e.target.value)}
+                placeholder="http://localhost:11434"
+              />
+              <p className="text-xs text-muted-foreground">
+                Default Ollama endpoint. Forge Seed will connect to this for local AI processing.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="model-select">Default Model</Label>
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger id="model-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
+                  <SelectItem value="qwen-coder">Qwen Coder</SelectItem>
+                  <SelectItem value="llama3">Llama 3</SelectItem>
+                  <SelectItem value="codellama">Code Llama</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Select the default model for code analysis and generation.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-border bg-secondary/30 p-4">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Model Availability</p>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-emerald-400" />
+                <p className="text-xs text-muted-foreground">
+                  Ollama detected at {ollamaEndpoint}. Models can be pulled using the Ollama CLI.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cloud AI Configuration */}
+      {aiMode === "cloud" && (
+        <Card className="border-border bg-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-4 w-4 text-blue-400" />
+              <CardTitle className="text-sm">Cloud AI Settings</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+              <p className="text-xs font-medium text-amber-400 mb-1">Coming Soon</p>
+              <p className="text-xs text-muted-foreground">
+                Cloud AI integration is under development. Use Local AI with Ollama for now.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          className="rounded-xl bg-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 transition-all hover:bg-violet-500 active:scale-[0.98]"
+        >
+          Save Configuration
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ForgeSeedTab() {
   const { toast } = useToast();
   const { data: devices } = useListDevices({ query: { queryKey: getListDevicesQueryKey() } });
@@ -460,12 +619,16 @@ export default function Settings() {
               <TabsTrigger value="constitution" className="flex items-center gap-1.5 data-[state=active]:bg-violet-600/20 data-[state=active]:text-violet-300">
                 <Shield className="h-3.5 w-3.5" /> Constitution
               </TabsTrigger>
+              <TabsTrigger value="ai" className="flex items-center gap-1.5 data-[state=active]:bg-violet-600/20 data-[state=active]:text-violet-300">
+                <Cpu className="h-3.5 w-3.5" /> AI Configuration
+              </TabsTrigger>
               <TabsTrigger value="seed" className="flex items-center gap-1.5 data-[state=active]:bg-violet-600/20 data-[state=active]:text-violet-300">
                 <Laptop className="h-3.5 w-3.5" /> Forge Seed
               </TabsTrigger>
             </TabsList>
             <TabsContent value="memory"><MemoryTab /></TabsContent>
             <TabsContent value="constitution"><ConstitutionTab /></TabsContent>
+            <TabsContent value="ai"><AIConfigTab /></TabsContent>
             <TabsContent value="seed"><ForgeSeedTab /></TabsContent>
           </Tabs>
         </div>

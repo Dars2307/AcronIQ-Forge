@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { tasksTable, projectsTable, auditEntriesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
+import { taskQueue } from "../lib/queues";
 
 const router = Router();
 
@@ -54,9 +55,7 @@ router.post("/", async (req, res) => {
     details: `Task created: "${prompt}"`,
   });
 
-  setTimeout(async () => {
-    await db.update(tasksTable).set({ status: "awaiting_approval" }).where(eq(tasksTable.id, task.id));
-  }, 2000);
+  await taskQueue.add("complete_planning", { taskId: task.id });
 
   res.status(201).json(serializeTask(task, project.name));
 });
@@ -85,14 +84,7 @@ router.patch("/:id/approve", async (req, res) => {
     details: `Task #${id} approved for execution`,
   });
 
-  setTimeout(async () => {
-    await db.update(tasksTable).set({
-      status: "completed",
-      completedAt: new Date(),
-      buildStatus: "success",
-      filesModified: ["src/components/Header.tsx", "src/lib/auth.ts"],
-    }).where(eq(tasksTable.id, id));
-  }, 4000);
+  await taskQueue.add("execute_task", { taskId: task.id });
 
   const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, task.projectId));
   res.json(serializeTask(task, project?.name));

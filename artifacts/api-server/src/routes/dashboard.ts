@@ -9,6 +9,7 @@ import {
   devicesTable,
   agentsTable,
 } from "@workspace/db";
+import { agentRunQueue, taskQueue, projectScanQueue } from "../lib/queues";
 
 const router = Router();
 
@@ -78,6 +79,26 @@ router.get("/activity", async (_req, res) => {
   }));
 
   res.json(items);
+});
+
+router.get("/queues", async (_req, res) => {
+  const queues = [
+    { name: "Agent Runs", queue: agentRunQueue },
+    { name: "Tasks", queue: taskQueue },
+    { name: "Project Scans", queue: projectScanQueue },
+  ];
+
+  const statuses = await Promise.all(
+    queues.map(async ({ name, queue }) => {
+      const counts = await queue.getJobCounts("active", "completed", "failed", "delayed", "waiting", "paused");
+      return {
+        name,
+        counts,
+      };
+    }),
+  );
+
+  res.json(statuses);
 });
 
 export default router;

@@ -18,17 +18,27 @@ router.get("/", async (_req, res) => {
   const projects = await db.select().from(projectsTable);
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.name]));
 
-  const withCounts = await Promise.all(conversations.map(async c => {
-    const msgs = await db.select({ count: count() }).from(messagesTable).where(eq(messagesTable.conversationId, c.id));
+  // Efficiently get message counts for all conversations in a single query
+  const messageCounts = await db
+    .select({
+      conversationId: messagesTable.conversationId,
+      count: count(),
+    })
+    .from(messagesTable)
+    .groupBy(messagesTable.conversationId);
+
+  const countMap = Object.fromEntries(messageCounts.map(mc => [mc.conversationId, mc.count]));
+
+  const response = conversations.map(c => {
     return {
       ...c,
       projectName: c.projectId ? (projectMap[c.projectId] ?? null) : null,
-      messageCount: msgs[0]?.count ?? 0,
+      messageCount: countMap[c.id] ?? 0,
       createdAt: c.createdAt.toISOString(),
     };
-  }));
+  });
 
-  res.json(withCounts);
+  res.json(response);
 });
 
 router.post("/", async (req, res) => {

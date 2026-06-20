@@ -8,7 +8,7 @@ import {
   insertProjectSchema,
 } from "@workspace/db";
 import { eq, count, avg } from "drizzle-orm";
-import { z } from "zod/v4";
+import { projectScanQueue } from "../lib/queues";
 
 const router = Router();
 
@@ -108,10 +108,7 @@ router.post("/:id/scan", async (req, res) => {
     details: `Scan triggered for "${project.name}"`,
   });
 
-  setTimeout(async () => {
-    await db.update(projectsTable).set({ status: "active", lastScanAt: new Date() }).where(eq(projectsTable.id, id));
-    await db.update(tasksTable).set({ status: "completed", completedAt: new Date(), buildStatus: "success", confidenceScore: 95 }).where(eq(tasksTable.id, task.id));
-  }, 3000);
+  await projectScanQueue.add("scan-project", { projectId: id, taskId: task.id });
 
   res.status(202).json({
     ...task,

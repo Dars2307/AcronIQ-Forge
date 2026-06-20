@@ -1,39 +1,15 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { agentsTable, agentRunsTable, projectsTable, auditEntriesTable } from "@workspace/db";
+import {
+  agentsTable,
+  agentRunsTable,
+  projectsTable,
+  auditEntriesTable,
+} from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { agentRunQueue } from "../lib/queues";
 
 const router = Router();
-
-const agentRecommendations: Record<string, string[]> = {
-  repair: [
-    "3 TypeScript type errors detected in authentication module — fix recommended",
-    "Circular dependency found between auth and validation middleware — refactor advised",
-    "Build failing due to unresolved module — patch available",
-  ],
-  architecture: [
-    "Service layer is tightly coupled to database layer — consider repository pattern",
-    "API routes contain business logic — move to dedicated service classes",
-    "Missing input validation on 4 endpoints — add Zod schema validation",
-  ],
-  security: [
-    "JWT expiration not enforced on refresh tokens — high severity",
-    "SQL injection risk in dynamic query construction — immediate attention required",
-    "Dependency audit: 3 packages with known CVEs — upgrade recommended",
-  ],
-  documentation: [
-    "12 exported functions lack JSDoc documentation",
-    "API routes missing OpenAPI descriptions",
-    "README outdated — setup instructions do not match current configuration",
-  ],
-};
-
-const agentSummaries: Record<string, string> = {
-  repair: "Scan complete. Found 3 TypeScript errors, 1 circular dependency, and 1 build failure. All issues categorised by severity.",
-  architecture: "Architecture review complete. Identified coupling concerns and missing validation layers. Recommendations generated without modifying any files.",
-  security: "Security audit complete. Found 2 high-severity vulnerabilities and 3 dependency CVEs. No changes applied — awaiting approval.",
-  documentation: "Documentation audit complete. Found 12 undocumented functions and 1 outdated README. Generated documentation stubs for review.",
-};
 
 function serializeAgent(a: typeof agentsTable.$inferSelect) {
   return {
@@ -97,36 +73,25 @@ router.post("/:id/run", async (req, res) => {
   const [run] = await db.insert(agentRunsTable).values({
     agentId: id,
     projectId,
-    status: "running",
+    status: "queued",
     recommendations: [],
   }).returning();
 
   await db.insert(auditEntriesTable).values({
     entityType: "agent",
     entityId: id,
-    action: "agent_run_started",
+    action: "agent_run_queued",
     actor: req.user.id,
-    details: `${agent.name} started on ${project.name}`,
+    details: `${agent.name} run queued for ${project.name}`,
   });
 
-  setTimeout(async () => {
-    const recs = agentRecommendations[agent.type] ?? ["Analysis complete — no critical issues found."];
-    const summary = agentSummaries[agent.type] ?? "Analysis complete.";
-    await db.update(agentRunsTable).set({
-      status: "completed",
-      summary,
-      recommendations: recs,
-      completedAt: new Date(),
-    }).where(eq(agentRunsTable.id, run.id));
-    await db.update(agentsTable).set({ lastRunAt: new Date() }).where(eq(agentsTable.id, id));
-    await db.insert(auditEntriesTable).values({
-      entityType: "agent",
-      entityId: id,
-      action: "agent_run_completed",
-      actor: "forge-agent",
-      details: `${agent.name} completed on ${project.name}`,
-    });
-  }, 5000);
+  // Add job to the in-memory queue for the background worker to process
+  await agentRunQueue.add("run-agent", {
+    runId: run.id,
+    agentId: agent.id,
+    agentType: agent.type,
+    projectName: project.name,
+  });
 
   res.status(202).json(serializeRun(run));
 });
