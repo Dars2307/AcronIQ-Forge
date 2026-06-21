@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { useListTasks, getListTasksQueryKey } from "@workspace/api-client-react";
+import { useListTasks, getListTasksQueryKey, useApproveTask, useRejectTask } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, format } from "date-fns";
-import { Activity, Clock, CheckCircle, AlertTriangle, ListTodo, Search } from "lucide-react";
+import { Activity, Clock, CheckCircle, AlertTriangle, ListTodo, Search, Check, X, PlayCircle, FileCheck, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Tasks() {
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
@@ -16,6 +19,18 @@ export default function Tasks() {
   
   const { data: tasks, isLoading } = useListTasks(params, {
     query: { queryKey: getListTasksQueryKey(params) }
+  });
+
+  const approveTask = useApproveTask({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(params) }),
+    },
+  });
+
+  const rejectTask = useRejectTask({
+    mutation: {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListTasksQueryKey(params) }),
+    },
   });
 
   const filteredTasks = tasks?.filter(t => 
@@ -119,18 +134,60 @@ export default function Tasks() {
                             {task.filesModified.length} files
                           </span>
                         )}
+                        {task.buildStatus && (
+                          <span className={`flex items-center gap-1 ${
+                            task.buildStatus === 'success' ? 'text-chart-3' :
+                            task.buildStatus === 'failed' ? 'text-destructive' :
+                            'text-muted-foreground'
+                          }`}>
+                            {task.buildStatus === 'success' ? <FileCheck className="h-3 w-3" /> :
+                             task.buildStatus === 'failed' ? <AlertCircle className="h-3 w-3" /> :
+                             <PlayCircle className="h-3 w-3" />}
+                            Build: {task.buildStatus}
+                          </span>
+                        )}
                       </div>
                     </div>
                     
-                    <div className="flex items-center sm:justify-end">
-                       <Badge variant={
-                          task.status === 'completed' ? 'default' :
-                          task.status === 'running' ? 'secondary' :
-                          task.status === 'awaiting_approval' ? 'outline' :
-                          task.status === 'failed' || task.status === 'rejected' ? 'destructive' : 'secondary'
-                        } className="uppercase text-[10px] whitespace-nowrap">
-                          {task.status}
-                        </Badge>
+                    <div className="flex items-center gap-2 sm:justify-end">
+                      {task.status === 'awaiting_approval' && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-3 text-xs"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              approveTask.mutate({ id: task.id });
+                            }}
+                            disabled={approveTask.isPending}
+                          >
+                            <Check className="h-3 w-3 mr-1 text-chart-3" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-3 text-xs border-destructive text-destructive hover:bg-destructive/10"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              rejectTask.mutate({ id: task.id });
+                            }}
+                            disabled={rejectTask.isPending}
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                      <Badge variant={
+                         task.status === 'completed' ? 'default' :
+                         task.status === 'running' ? 'secondary' :
+                         task.status === 'awaiting_approval' ? 'outline' :
+                         task.status === 'failed' || task.status === 'rejected' ? 'destructive' : 'secondary'
+                       } className="uppercase text-[10px] whitespace-nowrap">
+                         {task.status}
+                       </Badge>
                     </div>
                   </div>
                 </CardContent>
