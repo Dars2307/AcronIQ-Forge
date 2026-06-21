@@ -10,9 +10,6 @@ This document lists all required environment variables for deploying AcronIQ For
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/dbname` |
 | `JWT_SECRET` | Secret for JWT token signing | `your-secret-key-here` |
-| `REPLIT_CLIENT_ID` | Replit OAuth client ID | `your-client-id` |
-| `REPLIT_CLIENT_SECRET` | Replit OAuth client secret | `your-client-secret` |
-| `REPLIT_REDIRECT_URI` | OAuth redirect URL | `https://your-app.com/auth/callback` |
 | `NODE_ENV` | Environment (set to `production`) | `production` |
 
 ### Optional Variables
@@ -30,7 +27,7 @@ This document lists all required environment variables for deploying AcronIQ For
 |----------|-------------|---------|
 | `PORT` | Build port (required by Vite config) | `3000` |
 | `BASE_PATH` | Base path for routing | `/` |
-| `VITE_API_BASE_URL` | API server URL | `https://your-api.onrender.com` |
+| `VITE_API_BASE_URL` | API server URL | `https://acroniq-forge.onrender.com` |
 
 ### Optional Variables
 
@@ -44,7 +41,7 @@ This document lists all required environment variables for deploying AcronIQ For
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `FORGE_API_URL` | Forge API endpoint | `https://your-api.onrender.com` |
+| `FORGE_API_URL` | Forge API endpoint | `https://acroniq-forge.onrender.com` |
 | `FORGE_API_KEY` | API authentication key | `your-api-key` |
 
 ### Optional Variables
@@ -80,9 +77,6 @@ Create a `.env` file in the root directory:
 # API Server
 DATABASE_URL=postgresql://user:pass@localhost:5432/forge
 JWT_SECRET=your-secret-key-here
-REPLIT_CLIENT_ID=your-client-id
-REPLIT_CLIENT_SECRET=your-client-secret
-REPLIT_REDIRECT_URI=http://localhost:3000/auth/callback
 NODE_ENV=development
 
 # Web App
@@ -102,3 +96,4 @@ OLLAMA_MODEL=deepseek-coder
 - Rotate secrets regularly
 - Use different secrets for development and production
 - Store secrets in your platform's secret management system (Render/Cloudflare)
+

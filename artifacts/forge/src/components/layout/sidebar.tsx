@@ -9,11 +9,9 @@ import {
   Bot,
   Laptop,
   Settings,
-  LogOut,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@workspace/replit-auth-web";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -28,17 +26,6 @@ const navItems = [
 
 export function Sidebar() {
   const [location] = useLocation();
-  const { user, logout } = useAuth();
-
-  const initials = user
-    ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() ||
-      user.email?.[0]?.toUpperCase() ||
-      "U"
-    : "U";
-
-  const displayName = user?.firstName
-    ? `${user.firstName} ${user.lastName ?? ""}`.trim()
-    : user?.email ?? "Engineer";
 
   return (
     <aside className="relative flex h-screen w-56 shrink-0 flex-col bg-sidebar border-r border-sidebar-border overflow-hidden">
@@ -95,7 +82,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="shrink-0 border-t border-sidebar-border px-2 py-2 space-y-0.5">
+      <div className="shrink-0 border-t border-sidebar-border px-2 py-2">
         <Link
           href="/settings"
           className={cn(
@@ -115,34 +102,6 @@ export function Sidebar() {
           />
           Settings
         </Link>
-
-        {/* User row */}
-        <div className="flex items-center gap-2.5 rounded-md px-3 py-2">
-          {user?.profileImageUrl ? (
-            <img
-              src={user.profileImageUrl}
-              alt={initials}
-              className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-violet-500/30"
-            />
-          ) : (
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-[10px] font-bold text-white">
-              {initials}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-sidebar-foreground/80">
-              {displayName}
-            </p>
-            <p className="text-[10px] text-muted-foreground/60 truncate">Administrator</p>
-          </div>
-          <button
-            onClick={logout}
-            title="Sign out"
-            className="shrink-0 text-muted-foreground/40 transition-colors hover:text-sidebar-foreground"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-          </button>
-        </div>
       </div>
     </aside>
   );

@@ -55,6 +55,7 @@ The Forge web application is configured for Cloudflare Pages deployment:
    - Environment variables:
      - `PORT`: `3000`
      - `BASE_PATH`: `/`
+     - `VITE_API_BASE_URL`: `https://acroniq-forge.onrender.com`
 
 3. Deploy - Cloudflare will automatically deploy on push to main branch
 
@@ -65,14 +66,13 @@ The API server is configured for Render deployment:
 1. Connect your GitHub repository to Render
 2. Create a new Web Service
 3. Set build settings:
-   - Build Command: `cd artifacts/api-server && pnpm install && pnpm run build`
-   - Start Command: `cd artifacts/api-server && pnpm run start`
+   - Root Directory: `artifacts/api-server`
+   - Build Command: `pnpm install && pnpm run build`
+   - Start Command: `pnpm run start`
    - Environment variables (required):
      - `DATABASE_URL`: PostgreSQL connection string
      - `JWT_SECRET`: Secret for JWT tokens
-     - `REPLIT_CLIENT_ID`: Replit OAuth client ID
-     - `REPLIT_CLIENT_SECRET`: Replit OAuth client secret
-     - `REPLIT_REDIRECT_URI`: OAuth redirect URL
+     - `NODE_ENV`: `production`
 
 4. Deploy - Render will automatically deploy on push to main branch
 
