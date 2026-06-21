@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: forge-api
+    env: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: REPLIT_CLIENT_ID
+        sync: false
+      - key: REPLIT_CLIENT_SECRET
+        sync: false
+      - key: REPLIT_REDIRECT_URI
+        sync: false
