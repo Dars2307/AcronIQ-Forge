@@ -217,7 +217,7 @@ export default function Devices() {
 
                 <div className="mb-8 flex flex-col items-center gap-2">
                   <a
-                    href="/downloads/forge-seed.exe"
+                    href="https://github.com/Dars2307/AcronIQ-Forge/releases/latest/download/forge-seed.exe"
                     download="forge-seed.exe"
                     className="inline-flex items-center gap-2.5 rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 transition-all hover:bg-violet-500 active:scale-[0.98]"
                   >
