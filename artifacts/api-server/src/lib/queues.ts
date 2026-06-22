@@ -1,17 +1,5 @@
-import { Queue, Worker, Job } from "bullmq";
-import IORedis from "ioredis";
 import { db, agentsTable, agentRunsTable, projectsTable, auditEntriesTable, tasksTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-
-// NOTE: In a real app, Redis connection details would come from environment variables.
-const connection = new IORedis({
-  maxRetriesPerRequest: null, // Required for BullMQ
-});
-
-// Re-usable worker error handler
-const onWorkerFailed = (job: Job | undefined, error: Error) => {
-  console.error(`[Worker:${job?.queueName}] Job ${job?.id} failed for name ${job?.name}:`, error);
-};
 
 // ─── Agent Run Queue ──────────────────────────────────────────────────────────
 
@@ -46,10 +34,16 @@ const agentSummaries: Record<string, string> = {
 };
 
 interface AgentRunJobData { runId: number; agentId: number; agentType: string; projectName: string; }
-export const agentRunQueue = new Queue<AgentRunJobData>("agent-runs", { connection });
 
-new Worker<AgentRunJobData>("agent-runs", async (job) => {
-  const { runId, agentId, agentType, projectName } = job.data;
+export const agentRunQueue = {
+  async add(data: AgentRunJobData) {
+    console.log(`[Agent Queue] Adding job for run ID: ${data.runId}`);
+    await processAgentRun(data);
+  }
+};
+
+async function processAgentRun(data: AgentRunJobData) {
+  const { runId, agentId, agentType, projectName } = data;
   console.log(`[Agent Worker] Processing job for run ID: ${runId}`);
   try {
     await db.update(agentRunsTable).set({ status: "running" }).where(eq(agentRunsTable.id, runId));
@@ -63,20 +57,25 @@ new Worker<AgentRunJobData>("agent-runs", async (job) => {
   } catch (error) {
     console.error(`[Agent Worker] Error processing job for run ID: ${runId}`, error);
     await db.update(agentRunsTable).set({ status: "failed", summary: "The agent run failed due to an internal error.", completedAt: new Date() }).where(eq(agentRunsTable.id, runId));
-    throw error; // Re-throw to let BullMQ know the job failed
   }
-}, { connection, autorun: true }).on("failed", onWorkerFailed);
+}
 
 // ─── Task Queue ───────────────────────────────────────────────────────────────
 
 interface TaskJobData { taskId: number; }
-export const taskQueue = new Queue<TaskJobData>("tasks", { connection });
 
-new Worker<TaskJobData>("tasks", async (job) => {
-  const { taskId } = job.data;
-  console.log(`[Task Worker] Processing job for task ID: ${taskId}, action: ${job.name}`);
+export const taskQueue = {
+  async add(data: TaskJobData, opts: { name: string }) {
+    console.log(`[Task Queue] Adding job for task ID: ${data.taskId}, action: ${opts.name}`);
+    await processTask(data, opts.name);
+  }
+};
+
+async function processTask(data: TaskJobData, action: string) {
+  const { taskId } = data;
+  console.log(`[Task Worker] Processing job for task ID: ${taskId}, action: ${action}`);
   try {
-    switch (job.name) {
+    switch (action) {
       case "complete_planning":
         await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate planning
         await db.update(tasksTable).set({ status: "awaiting_approval" }).where(eq(tasksTable.id, taskId));
@@ -91,17 +90,22 @@ new Worker<TaskJobData>("tasks", async (job) => {
   } catch (error) {
     console.error(`[Task Worker] Error processing job for task ID: ${taskId}`, error);
     await db.update(tasksTable).set({ status: "failed", completedAt: new Date() }).where(eq(tasksTable.id, taskId));
-    throw error;
   }
-}, { connection, autorun: true }).on("failed", onWorkerFailed);
+}
 
 // ─── Project Scan Queue ───────────────────────────────────────────────────────
 
 interface ProjectScanJobData { projectId: number; taskId: number; }
-export const projectScanQueue = new Queue<ProjectScanJobData>("project-scans", { connection });
 
-new Worker<ProjectScanJobData>("project-scans", async (job) => {
-  const { projectId, taskId } = job.data;
+export const projectScanQueue = {
+  async add(data: ProjectScanJobData) {
+    console.log(`[Scan Queue] Adding scan for project ID: ${data.projectId}`);
+    await processProjectScan(data);
+  }
+};
+
+async function processProjectScan(data: ProjectScanJobData) {
+  const { projectId, taskId } = data;
   console.log(`[Scan Worker] Processing scan for project ID: ${projectId}`);
   try {
     await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate scan
@@ -112,8 +116,7 @@ new Worker<ProjectScanJobData>("project-scans", async (job) => {
     console.error(`[Scan Worker] Error processing scan for project ID: ${projectId}`, error);
     await db.update(projectsTable).set({ status: "active" }).where(eq(projectsTable.id, projectId));
     await db.update(tasksTable).set({ status: "failed", completedAt: new Date() }).where(eq(tasksTable.id, taskId));
-    throw error;
   }
-}, { connection, autorun: true }).on("failed", onWorkerFailed);
+}
 
-console.log("🐂 BullMQ Workers initialized and connected to Redis.");
+console.log("🐂 In-memory queue workers initialized (Redis/BullMQ not configured).");
