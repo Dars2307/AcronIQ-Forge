@@ -45,39 +45,43 @@ router.get("/download/forge-seed.exe", (req, res) => {
 
 // ── List devices (no auth required for now) ──
 router.get("/", async (req, res) => {
-  const devices = await db.select().from(devicesTable).where(eq(devicesTable.userId, "1"));
+  const devices = await db.select().from(devicesTable);
   res.json(devices.map(serialize));
 });
 
 // ── Register device (no auth required for now) ──
 router.post("/", async (req, res) => {
   const pairingToken = randomBytes(32).toString("hex");
-  const [device] = await db
-    .insert(devicesTable)
-    .values({
-      userId: "1", // Default user ID until proper auth is implemented
-      name: String(req.body.name),
-      platform: req.body.platform ?? "windows",
-      status: "offline",
-      pairingToken,
-      ollamaAvailable: false,
-    })
-    .returning();
-  await db.insert(auditEntriesTable).values({
-    entityType: "device",
-    entityId: device.id,
-    action: "device_registered",
-    actor: "system",
-    details: `Device "${device.name}" registered`,
-  });
-  res.status(201).json(serialize(device));
+  try {
+    const [device] = await db
+      .insert(devicesTable)
+      .values({
+        name: String(req.body.name),
+        platform: req.body.platform ?? "windows",
+        status: "offline",
+        pairingToken,
+        ollamaAvailable: false,
+      })
+      .returning();
+    await db.insert(auditEntriesTable).values({
+      entityType: "device",
+      entityId: device.id,
+      action: "device_registered",
+      actor: "system",
+      details: `Device "${device.name}" registered`,
+    });
+    res.status(201).json(serialize(device));
+  } catch (error) {
+    console.error("Device registration error:", error);
+    res.status(500).json({ error: "Failed to register device" });
+  }
 });
 
 // ── Get device by ID (no auth required for now) ──
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, id));
-  if (!device || device.userId !== "1") return res.status(404).json({ error: "Not found" });
+  if (!device) return res.status(404).json({ error: "Not found" });
   res.json(serialize(device));
 });
 
@@ -85,7 +89,7 @@ router.get("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, id));
-  if (!device || device.userId !== "1") return res.status(404).json({ error: "Not found" });
+  if (!device) return res.status(404).json({ error: "Not found" });
   await db.delete(devicesTable).where(eq(devicesTable.id, id));
   await db.insert(auditEntriesTable).values({
     entityType: "device",

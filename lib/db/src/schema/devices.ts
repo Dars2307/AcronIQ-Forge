@@ -4,7 +4,7 @@ import { z } from "zod/v4";
 
 export const devicesTable = pgTable("devices", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
+  userId: text("user_id"),
   name: text("name").notNull(),
   platform: text("platform").notNull().default("windows"),
   status: text("status").notNull().default("offline"),
