@@ -43,21 +43,19 @@ router.get("/download/forge-seed.exe", (req, res) => {
   res.download(exePath, "forge-seed.exe");
 });
 
-// ── List devices (session auth) ──
+// ── List devices (no auth required for now) ──
 router.get("/", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
-  const devices = await db.select().from(devicesTable).where(eq(devicesTable.userId, req.user.id));
+  const devices = await db.select().from(devicesTable).where(eq(devicesTable.userId, "1"));
   res.json(devices.map(serialize));
 });
 
-// ── Register device (session auth) ──
+// ── Register device (no auth required for now) ──
 router.post("/", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
   const pairingToken = randomBytes(32).toString("hex");
   const [device] = await db
     .insert(devicesTable)
     .values({
-      userId: req.user.id,
+      userId: "1", // Default user ID until proper auth is implemented
       name: String(req.body.name),
       platform: req.body.platform ?? "windows",
       status: "offline",
@@ -69,53 +67,49 @@ router.post("/", async (req, res) => {
     entityType: "device",
     entityId: device.id,
     action: "device_registered",
-    actor: req.user.id,
+    actor: "system",
     details: `Device "${device.name}" registered`,
   });
   res.status(201).json(serialize(device));
 });
 
-// ── Get device by ID (session auth) ──
+// ── Get device by ID (no auth required for now) ──
 router.get("/:id", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
   const id = Number(req.params.id);
   const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, id));
-  if (!device || device.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  if (!device || device.userId !== "1") return res.status(404).json({ error: "Not found" });
   res.json(serialize(device));
 });
 
-// ── Delete device (session auth) ──
+// ── Delete device (no auth required for now) ──
 router.delete("/:id", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ error: "Unauthorized" });
   const id = Number(req.params.id);
   const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, id));
-  if (!device || device.userId !== req.user.id) return res.status(404).json({ error: "Not found" });
+  if (!device || device.userId !== "1") return res.status(404).json({ error: "Not found" });
   await db.delete(devicesTable).where(eq(devicesTable.id, id));
   await db.insert(auditEntriesTable).values({
     entityType: "device",
     entityId: id,
     action: "device_unlinked",
-    actor: req.user.id,
+    actor: "system",
     details: `Device "${device.name}" unlinked`,
   });
   res.status(204).send();
 });
 
-// ── Heartbeat — accepts session auth OR Bearer token (for Forge Seed) ──
+// ── Heartbeat — accepts Bearer token (for Forge Seed) ──
 router.patch("/:id/heartbeat", async (req, res) => {
   const id = Number(req.params.id);
 
-  // Verify auth: either active session OR valid Bearer token matching this device
+  // Verify auth: valid Bearer token matching this device
   const authHeader = req.headers.authorization ?? "";
-  if (!req.isAuthenticated()) {
-    if (!authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    const token = authHeader.slice(7).trim();
-    const [device] = await db.select().from(devicesTable).where(eq(devicesTable.id, id));
-    if (!device || device.pairingToken !== token) {
-      return res.status(401).json({ error: "Invalid pairing token" });
-    }
+  if (!authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  const token = authHeader.slice(7).trim();
+  const [existingDevice] = await db.select().from(devicesTable).where(eq(devicesTable.id, id));
+  if (!existingDevice || existingDevice.pairingToken !== token) {
+    return res.status(401).json({ error: "Invalid pairing token" });
   }
 
   const updates: Record<string, unknown> = {
