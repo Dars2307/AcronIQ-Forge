@@ -7,3 +7,7 @@ vars = { ENVIRONMENT = "production", VITE_API_BASE_URL = "https://acroniq-forge.
 
 [env.preview]
 vars = { ENVIRONMENT = "preview", VITE_API_BASE_URL = "https://acroniq-forge.onrender.com" }
+
+[build]
+command = "cd apps/forge && pnpm install && pnpm run build"
+cwd = "."
