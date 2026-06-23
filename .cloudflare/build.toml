@@ -1,4 +1,5 @@
 [build]
 command = "pnpm install && pnpm --filter @workspace/forge run build"
 cwd = "."
+output_dir = "apps/forge/dist"
 
