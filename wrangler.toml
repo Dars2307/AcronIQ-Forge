@@ -1,6 +1,6 @@
 name = "forge"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = "dist"
+pages_build_output_dir = "apps/forge/dist"
 
 [env.production]
 vars = { ENVIRONMENT = "production", VITE_API_BASE_URL = "https://acroniq-forge.onrender.com" }
@@ -9,5 +9,5 @@ vars = { ENVIRONMENT = "production", VITE_API_BASE_URL = "https://acroniq-forge.
 vars = { ENVIRONMENT = "preview", VITE_API_BASE_URL = "https://acroniq-forge.onrender.com" }
 
 [build]
-command = "pnpm install && pnpm run build"
+command = "cd apps/forge && pnpm install && pnpm run build"
 cwd = "."
