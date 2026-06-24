@@ -38,7 +38,7 @@ pnpm install
 pnpm run build
 
 # Build Forge Seed executable
-cd artifacts/forge-seed
+cd apps/forge-seed
 pnpm run build:win
 ```
 
@@ -50,8 +50,8 @@ The Forge web application is configured for Cloudflare Pages deployment:
 
 1. Connect your GitHub repository to Cloudflare Pages
 2. Set build settings:
-   - Build command: `cd artifacts/forge && pnpm install && pnpm run build`
-   - Build output directory: `artifacts/forge/dist/public`
+   - Build command: `pnpm --filter @workspace/forge run build`
+   - Build output directory: `apps/forge/dist`
    - Environment variables:
      - `PORT`: `3000`
      - `BASE_PATH`: `/`
@@ -66,8 +66,8 @@ The API server is configured for Render deployment:
 1. Connect your GitHub repository to Render
 2. Create a new Web Service
 3. Set build settings:
-   - Root Directory: `artifacts/api-server`
-   - Build Command: `pnpm install && pnpm run build`
+   - Root Directory: `apps/api-server`
+   - Build Command: `cd ../.. && pnpm install && cd apps/api-server && pnpm run build`
    - Start Command: `pnpm run start`
    - Environment variables (required):
      - `DATABASE_URL`: PostgreSQL connection string
@@ -84,10 +84,11 @@ See [ENVIRONMENT.md](./ENVIRONMENT.md) for a complete list of required environme
 
 ```text
 AcronIQ-Forge/
-├── artifacts/
+├── apps/
 │   ├── forge/              # Web application (React/Vite)
 │   ├── forge-seed/         # Local agent (Node.js)
 │   ├── api-server/         # Backend API (Express)
+├── packages/
 │   ├── api-client-react/   # Generated API client
 │   ├── api-spec/           # OpenAPI specification
 │   ├── api-zod/            # API schemas
@@ -103,15 +104,15 @@ AcronIQ-Forge/
 
 ```bash
 # Start API server
-cd artifacts/api-server
+cd apps/api-server
 pnpm run dev
 
 # Start web application (in another terminal)
-cd artifacts/forge
+cd apps/forge
 pnpm run dev
 
 # Start Forge Seed (in another terminal)
-cd artifacts/forge-seed
+cd apps/forge-seed
 node dist/bundle.js
 ```
 
@@ -122,7 +123,7 @@ node dist/bundle.js
 pnpm run build
 
 # Build specific package
-cd artifacts/forge
+cd apps/forge
 pnpm run build
 ```
 

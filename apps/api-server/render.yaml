@@ -2,8 +2,8 @@ services:
   - type: web
     name: forge-api
     env: node
-    rootDirectory: artifacts/api-server
-    buildCommand: cd ../.. && pnpm install && cd artifacts/api-server && pnpm run build
+    rootDirectory: apps/api-server
+    buildCommand: cd ../.. && pnpm install && cd apps/api-server && pnpm run build
     startCommand: pnpm run start
     envVars:
       - key: NODE_ENV
