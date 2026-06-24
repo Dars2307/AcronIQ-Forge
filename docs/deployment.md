@@ -42,17 +42,19 @@ SUPABASE_URL="https://your-project.supabase.co"
 The web UI uses Vite and is deployed to Cloudflare Pages.
 
 **Build Settings:**
-- Build command: `pnpm build`
-- Build output directory: `dist/public`
-- Node.js version: 18
+- **Root Directory:** Repository root (`/`)
+- **Build command:** `pnpm --filter @workspace/forge run build`
+- **Build output directory:** `apps/forge/dist`
+- **Node.js version:** 18+
 
 ### Deployment Steps
 
 1. Connect Cloudflare Pages to your Git repository
 2. Configure build settings:
-   - Framework preset: Vite
-   - Build command: `cd apps/forge && pnpm build`
-   - Output directory: `apps/forge/dist/public`
+   - Framework preset: None (or Vite)
+   - Root Directory: (Leave empty or set to `/`)
+   - Build command: `pnpm --filter @workspace/forge run build`
+   - Output directory: `apps/forge/dist`
 3. Add environment variables:
    - `VITE_API_BASE_URL`: Your API server URL
 4. Deploy
@@ -75,21 +77,18 @@ The API server is an Express.js application deployed to Render.
 ```yaml
 services:
   - type: web
-    name: acroniq-forge-api
+    name: forge-api
     env: node
-    buildCommand: cd apps/api-server && pnpm build
-    startCommand: cd apps/api-server && pnpm start
+    rootDirectory: apps/api-server
+    buildCommand: cd ../.. && pnpm install && cd apps/api-server && pnpm run build
+    startCommand: pnpm run start
     envVars:
       - key: DATABASE_URL
         sync: false
-      - key: SESSION_SECRET
+      - key: JWT_SECRET
         sync: false
-      - key: SUPABASE_SECRET_KEY
-        sync: false
-      - key: SUPABASE_PUBLISHABLE_KEY
-        sync: false
-      - key: SUPABASE_URL
-        sync: false
+      - key: NODE_ENV
+        value: production
 ```
 
 ### Deployment Steps
@@ -97,9 +96,10 @@ services:
 1. Connect Render to your Git repository
 2. Create a new Web Service
 3. Configure:
-   - Runtime: Node
-   - Build Command: `cd apps/api-server && pnpm build`
-   - Start Command: `cd apps/api-server && pnpm start`
+    - Root Directory: `apps/api-server`
+    - Runtime: Node
+    - Build Command: `cd ../.. && pnpm install && cd apps/api-server && pnpm run build`
+    - Start Command: `pnpm run start`
 4. Add environment variables
 5. Deploy
 

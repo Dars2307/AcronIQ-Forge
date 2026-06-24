@@ -157,6 +157,9 @@ importers:
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../packages/api-zod
+      '@workspace/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       connect-pg-simple:
         specifier: ^9.0.1
         version: 9.0.1
@@ -169,6 +172,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.20.0)(pg@8.20.0)
       express:
         specifier: ^5.2.1
         version: 5.2.1
