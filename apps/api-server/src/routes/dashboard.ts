@@ -31,7 +31,7 @@ router.get("/summary", async (_req, res) => {
   const connectedDevices = devices.filter((d: any) => d.status === "online").length;
   const agentsEnabled = agents.length;
 
-  res.json({
+  return res.json({
     totalProjects,
     activeProjects,
     openTasks,
@@ -74,11 +74,11 @@ router.get("/activity", async (_req, res) => {
     createdAt: e.created_at?.toISOString() ?? null,
   }));
 
-  res.json(items);
+  return res.json(items);
 });
 
 router.get("/queues", async (_req, res) => {
-  res.json([
+  return res.json([
     { name: "Agent Runs", counts: { active: 0, completed: 0, failed: 0, delayed: 0, waiting: 0, paused: 0 } },
     { name: "Tasks", counts: { active: 0, completed: 0, failed: 0, delayed: 0, waiting: 0, paused: 0 } },
     { name: "Project Scans", counts: { active: 0, completed: 0, failed: 0, delayed: 0, waiting: 0, paused: 0 } },
