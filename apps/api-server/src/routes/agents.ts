@@ -65,7 +65,7 @@ router.patch("/:id", async (req, res) => {
 
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
   const agent = result.rows[0];
-  res.json(serializeAgent(agent));
+  return res.json(serializeAgent(agent));
 });
 
 router.post("/:id/run", async (req, res) => {
@@ -103,7 +103,7 @@ router.post("/:id/run", async (req, res) => {
     projectName: project.name,
   });
 
-  res.status(202).json(serializeRun(run));
+  return res.status(202).json(serializeRun(run));
 });
 
 router.get("/:id/runs", async (req, res) => {
