@@ -1,4 +1,0 @@
-[build]
-command = "pnpm install && pnpm run build"
-cwd = "apps/forge"
-
