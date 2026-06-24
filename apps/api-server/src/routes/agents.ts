@@ -25,7 +25,7 @@ function serializeRun(r: any) {
 
 router.get("/", async (req, res) => {
   const result = await query("SELECT * FROM forge.agents ORDER BY created_at DESC");
-  res.json(result.rows.map(serializeAgent));
+  return res.json(result.rows.map(serializeAgent));
 });
 
 router.post("/", async (req, res) => {
@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
   );
 
   const agent = result.rows[0];
-  res.status(201).json(serializeAgent(agent));
+  return res.status(201).json(serializeAgent(agent));
 });
 
 router.patch("/:id", async (req, res) => {
@@ -109,7 +109,7 @@ router.post("/:id/run", async (req, res) => {
 router.get("/:id/runs", async (req, res) => {
   const id = Number(req.params.id);
   const result = await query("SELECT * FROM forge.agent_runs WHERE agent_id = $1 ORDER BY created_at DESC", [id]);
-  res.json(result.rows.map(serializeRun));
+  return res.json(result.rows.map(serializeRun));
 });
 
 export default router;

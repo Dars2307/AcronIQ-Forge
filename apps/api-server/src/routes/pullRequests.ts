@@ -32,7 +32,7 @@ router.get("/", async (req, res) => {
   const projects = projectResult.rows;
   const projectMap = Object.fromEntries(projects.map((p: any) => [p.id, p.name]));
 
-  res.json(prs.map((p: any) => serialize(p, projectMap[p.project_id])));
+  return res.json(prs.map((p: any) => serialize(p, projectMap[p.project_id])));
 });
 
 router.get("/:id", async (req, res) => {
@@ -44,7 +44,7 @@ router.get("/:id", async (req, res) => {
   const projectResult = await query("SELECT name FROM forge.projects WHERE id = $1", [pr.project_id]);
   const project = projectResult.rows[0];
 
-  res.json(serialize(pr, project?.name));
+  return res.json(serialize(pr, project?.name));
 });
 
 router.patch("/:id/merge", async (req, res) => {
@@ -66,7 +66,7 @@ router.patch("/:id/merge", async (req, res) => {
   const projectResult = await query("SELECT name FROM forge.projects WHERE id = $1", [pr.project_id]);
   const project = projectResult.rows[0];
 
-  res.json(serialize(pr, project?.name));
+  return res.json(serialize(pr, project?.name));
 });
 
 router.patch("/:id/close", async (req, res) => {
@@ -88,7 +88,7 @@ router.patch("/:id/close", async (req, res) => {
   const projectResult = await query("SELECT name FROM forge.projects WHERE id = $1", [pr.project_id]);
   const project = projectResult.rows[0];
 
-  res.json(serialize(pr, project?.name));
+  return res.json(serialize(pr, project?.name));
 });
 
 export default router;

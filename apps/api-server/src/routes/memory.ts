@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
   const params: unknown[] = [];
 
   const result = await query(sql, params);
-  res.json(result.rows.map(serialize));
+  return res.json(result.rows.map(serialize));
 });
 
 router.post("/", async (req, res) => {
@@ -28,7 +28,7 @@ router.post("/", async (req, res) => {
   );
 
   const entry = result.rows[0];
-  res.status(201).json(serialize(entry));
+  return res.status(201).json(serialize(entry));
 });
 
 router.patch("/:id", async (req, res) => {
@@ -56,13 +56,13 @@ router.patch("/:id", async (req, res) => {
 
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
   const entry = result.rows[0];
-  res.json(serialize(entry));
+  return res.json(serialize(entry));
 });
 
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
   await query("DELETE FROM forge.memory WHERE id = $1", [id]);
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 export default router;

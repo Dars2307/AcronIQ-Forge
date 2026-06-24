@@ -9,7 +9,7 @@ function serialize(r: any) {
 
 router.get("/", async (req, res) => {
   const result = await query("SELECT * FROM forge.constitution_rules ORDER BY created_at DESC");
-  res.json(result.rows.map(serialize));
+  return res.json(result.rows.map(serialize));
 });
 
 router.post("/", async (req, res) => {
@@ -20,7 +20,7 @@ router.post("/", async (req, res) => {
     [String(req.body.category), String(req.body.title), String(req.body.description), req.body.enforcement ?? "warn", true]
   );
   const rule = result.rows[0];
-  res.status(201).json(serialize(rule));
+  return res.status(201).json(serialize(rule));
 });
 
 router.patch("/:id", async (req, res) => {
@@ -60,13 +60,13 @@ router.patch("/:id", async (req, res) => {
 
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
   const rule = result.rows[0];
-  res.json(serialize(rule));
+  return res.json(serialize(rule));
 });
 
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
   await query("DELETE FROM forge.constitution_rules WHERE id = $1", [id]);
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 export default router;

@@ -30,7 +30,7 @@ router.get("/pair", async (req, res) => {
   if (result.rows.length === 0) return res.status(404).json({ error: "Invalid or expired token" });
 
   const device = result.rows[0];
-  res.json({ deviceId: device.id, name: device.name, platform: device.platform });
+  return res.json({ deviceId: device.id, name: device.name, platform: device.platform });
 });
 
 // ── Download Forge Seed binary ──
@@ -39,13 +39,13 @@ router.get("/download/forge-seed.exe", (req, res) => {
   if (!fs.existsSync(exePath)) {
     return res.status(404).json({ error: "Binary not yet built. Run: cd apps/desktop-agent && pnpm run tauri build" });
   }
-  res.download(exePath, "forge-agent-setup.exe");
+  return res.download(exePath, "forge-agent-setup.exe");
 });
 
 // ── List devices (no auth required for now) ──
 router.get("/", async (req, res) => {
   const result = await query("SELECT * FROM forge.devices ORDER BY created_at DESC");
-  res.json(result.rows.map(serialize));
+  return res.json(result.rows.map(serialize));
 });
 
 // ── Register device (no auth required for now) ──
@@ -73,10 +73,10 @@ router.post("/", async (req, res) => {
       ["device", device.id, "device_registered", "system", `Device "${device.name}" registered`]
     );
 
-    res.status(201).json(serialize(device));
+    return res.status(201).json(serialize(device));
   } catch (error) {
     console.error("Device registration error:", error);
-    res.status(500).json({ error: "Failed to register device" });
+    return res.status(500).json({ error: "Failed to register device" });
   }
 });
 
@@ -85,7 +85,7 @@ router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const result = await query("SELECT * FROM forge.devices WHERE id = $1", [id]);
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
-  res.json(serialize(result.rows[0]));
+  return res.json(serialize(result.rows[0]));
 });
 
 // ── Delete device (no auth required for now) ──
@@ -103,7 +103,7 @@ router.delete("/:id", async (req, res) => {
     ["device", id, "device_unlinked", "system", `Device "${device.name}" unlinked`]
   );
 
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 // ── Heartbeat — accepts Bearer token (for Forge Seed) ──
@@ -155,7 +155,7 @@ router.patch("/:id/heartbeat", async (req, res) => {
   );
 
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
-  res.json(serialize(result.rows[0]));
+  return res.json(serialize(result.rows[0]));
 });
 
 export default router;

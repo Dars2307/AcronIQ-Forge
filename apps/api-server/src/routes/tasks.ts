@@ -45,7 +45,7 @@ router.get("/", async (req, res) => {
   const projects = projectsResult.rows;
   const projectMap = Object.fromEntries(projects.map((p: any) => [p.id, p.name]));
 
-  res.json(tasks.map((t: any) => serializeTask(t, projectMap[t.project_id])));
+  return res.json(tasks.map((t: any) => serializeTask(t, projectMap[t.project_id])));
 });
 
 router.post("/", async (req, res) => {
@@ -72,7 +72,7 @@ router.post("/", async (req, res) => {
 
   await taskQueue.add({ taskId: task.id }, { name: "complete_planning" });
 
-  res.status(201).json(serializeTask(task, project.name));
+  return res.status(201).json(serializeTask(task, project.name));
 });
 
 router.get("/:id", async (req, res) => {
@@ -84,7 +84,7 @@ router.get("/:id", async (req, res) => {
   const projectResult = await query("SELECT name FROM forge.projects WHERE id = $1", [task.project_id]);
   const project = projectResult.rows[0];
 
-  res.json(serializeTask(task, project?.name));
+  return res.json(serializeTask(task, project?.name));
 });
 
 router.patch("/:id/approve", async (req, res) => {
@@ -108,7 +108,7 @@ router.patch("/:id/approve", async (req, res) => {
   const projectResult = await query("SELECT name FROM forge.projects WHERE id = $1", [task.project_id]);
   const project = projectResult.rows[0];
 
-  res.json(serializeTask(task, project?.name));
+  return res.json(serializeTask(task, project?.name));
 });
 
 router.patch("/:id/reject", async (req, res) => {
@@ -130,7 +130,7 @@ router.patch("/:id/reject", async (req, res) => {
   const projectResult = await query("SELECT name FROM forge.projects WHERE id = $1", [task.project_id]);
   const project = projectResult.rows[0];
 
-  res.json(serializeTask(task, project?.name));
+  return res.json(serializeTask(task, project?.name));
 });
 
 export default router;

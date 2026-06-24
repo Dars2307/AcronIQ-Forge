@@ -7,7 +7,7 @@ const router = Router();
 
 router.get("/", async (_req: Request, res: Response) => {
   const result = await query("SELECT * FROM forge.projects ORDER BY created_at DESC");
-  res.json(result.rows.map((p: any) => ({
+  return res.json(result.rows.map((p: any) => ({
     ...p,
     lastScanAt: p.last_scan_at?.toISOString() ?? null,
     createdAt: p.created_at?.toISOString() ?? null,
@@ -30,7 +30,7 @@ router.post("/", validateBody(schemas.projectCreate), async (req: Request, res: 
     ["project", project.id, "project_created", "user", `Project "${project.name}" added`]
   );
 
-  res.status(201).json({
+  return res.status(201).json({
     ...project,
     lastScanAt: project.last_scan_at?.toISOString() ?? null,
     createdAt: project.created_at?.toISOString() ?? null,
@@ -42,7 +42,7 @@ router.get("/:id", async (req, res) => {
   const result = await query("SELECT * FROM forge.projects WHERE id = $1", [id]);
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
   const project = result.rows[0];
-  res.json({
+  return res.json({
     ...project,
     lastScanAt: project.last_scan_at?.toISOString() ?? null,
     createdAt: project.created_at?.toISOString() ?? null,
@@ -86,7 +86,7 @@ router.patch("/:id", validateParams(schemas.idParam), validateBody(schemas.proje
 
   if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
   const project = result.rows[0];
-  res.json({
+  return res.json({
     ...project,
     lastScanAt: project.last_scan_at?.toISOString() ?? null,
     createdAt: project.created_at?.toISOString() ?? null,
@@ -96,7 +96,7 @@ router.patch("/:id", validateParams(schemas.idParam), validateBody(schemas.proje
 router.delete("/:id", validateParams(schemas.idParam), async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   await query("DELETE FROM forge.projects WHERE id = $1", [id]);
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 router.post("/:id/scan", async (req, res) => {
@@ -125,7 +125,7 @@ router.post("/:id/scan", async (req, res) => {
 
   await projectScanQueue.add({ projectId: id, taskId: task.id });
 
-  res.status(202).json({
+  return res.status(202).json({
     ...task,
     projectName: project.name,
     filesModified: task.files_modified as string[] || [],
@@ -147,7 +147,7 @@ router.get("/:id/summary", async (req, res) => {
   const tasks = tasksResult.rows;
   const openTasks = tasks.filter((t: any) => ["pending", "planning", "awaiting_approval", "running"].includes(t.status)).length;
 
-  res.json({
+  return res.json({
     projectId: id,
     healthScore: 100,
     openIssues: 0,

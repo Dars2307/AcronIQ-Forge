@@ -17,7 +17,7 @@ router.get("/", async (_req: Request, res: Response) => {
   const result = await query(
     "SELECT * FROM forge.integrations ORDER BY created_at DESC"
   );
-  res.json(result.rows);
+  return res.json(result.rows);
 });
 
 // Create a new integration
@@ -38,10 +38,10 @@ router.post("/", async (req: Request, res: Response) => {
       ["integration", result.rows[0].id, "integration_created", "user", `Integration "${name}" created`]
     );
 
-    res.status(201).json(result.rows[0]);
+    return res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error("Integration creation error:", error);
-    res.status(500).json({ error: "Failed to create integration" });
+    return res.status(500).json({ error: "Failed to create integration" });
   }
 });
 
@@ -86,10 +86,10 @@ router.patch("/:id", async (req: Request, res: Response) => {
       ["integration", id, "integration_updated", "user", `Integration ${id} updated`]
     );
 
-    res.json(result.rows[0]);
+    return res.json(result.rows[0]);
   } catch (error) {
     console.error("Integration update error:", error);
-    res.status(500).json({ error: "Failed to update integration" });
+    return res.status(500).json({ error: "Failed to update integration" });
   }
 });
 
@@ -105,7 +105,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
     ["integration", id, "integration_deleted", "user", `Integration ${id} deleted`]
   );
 
-  res.status(204).send();
+  return res.status(204).send();
 });
 
 // Test integration connection
@@ -132,7 +132,7 @@ router.post("/:id/test", async (req: Request, res: Response) => {
     message = 'Custom integration connection successful';
   }
 
-  res.json({
+  return res.json({
     status: connectionStatus,
     message,
     testedAt: new Date().toISOString(),
