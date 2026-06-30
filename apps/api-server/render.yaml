@@ -12,3 +12,7 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: DATABASE_POOL_MIN
+        value: "2"
+      - key: DATABASE_POOL_MAX
+        value: "20"
