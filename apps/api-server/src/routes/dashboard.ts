@@ -95,4 +95,20 @@ router.get("/queues", async (_req, res) => {
   ]);
 });
 
+router.get("/health", async (_req, res) => {
+  try {
+    const result = await query("SELECT 1 as health_check");
+    return res.json({ status: "ok", database: "connected", timestamp: new Date().toISOString() });
+  } catch (error) {
+    console.error("Health check error:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      database: "disconnected", 
+      error: error instanceof Error ? error.message : String(error),
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      nodeEnv: process.env.NODE_ENV
+    });
+  }
+});
+
 export default router;
