@@ -16,3 +16,9 @@ services:
         value: "2"
       - key: DATABASE_POOL_MAX
         value: "20"
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_REDIRECT_URI
+        value: https://acroniq-forge.onrender.com/api/auth/callback

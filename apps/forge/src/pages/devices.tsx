@@ -230,6 +230,39 @@ export default function Devices() {
                   <p className="text-xs text-muted-foreground/60">macOS and Linux support coming soon</p>
                 </div>
 
+                {/* Ollama Setup Instructions */}
+                <div className="mb-8 rounded-xl border border-violet-500/20 bg-violet-600/5 p-6">
+                  <div className="mb-4 flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600/10 ring-1 ring-violet-500/20">
+                      <Wifi className="h-4 w-4 text-violet-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">Install Ollama AI</h4>
+                      <p className="text-xs text-muted-foreground">Required for AI-powered code analysis</p>
+                    </div>
+                  </div>
+                  <ol className="ml-6 list-decimal space-y-2 text-sm text-muted-foreground">
+                    <li>
+                      Download Ollama from{" "}
+                      <a
+                        href="https://ollama.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-violet-400 hover:underline"
+                      >
+                        ollama.com
+                      </a>
+                    </li>
+                    <li>Install and run Ollama on your machine</li>
+                    <li>
+                      Download a model (recommended:{" "}
+                      <code className="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">ollama pull llama3.2</code>
+                      )
+                    </li>
+                    <li>Forge Seed will automatically detect Ollama and use it for AI tasks</li>
+                  </ol>
+                </div>
+
                 {/* Steps */}
                 <div className="grid grid-cols-3 gap-4 text-left">
                   {[

@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Plus, Brain, Shield, Laptop, Download, Cpu, Cloud, Server } from "lucide-react";
+import { Trash2, Plus, Brain, Shield, Laptop, Download, Cpu, Cloud, Server, Github, ExternalLink, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -596,6 +596,156 @@ function ForgeSeedTab() {
   );
 }
 
+function IntegrationsTab() {
+  const [githubConnected, setGithubConnected] = useState(false);
+  const [githubUser, setGithubUser] = useState<{ login: string; avatar_url: string } | null>(null);
+  const [repositories, setRepositories] = useState<Array<{ name: string; full_name: string; private: boolean }>>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const { toast } = useToast();
+
+  const handleGitHubConnect = () => {
+    window.location.href = "/api/auth/login";
+  };
+
+  const handleGitHubDisconnect = () => {
+    setGithubConnected(false);
+    setGithubUser(null);
+    setRepositories([]);
+    toast({ title: "GitHub disconnected", description: "Your GitHub account has been disconnected." });
+  };
+
+  const loadRepositories = async () => {
+    setLoadingRepos(true);
+    try {
+      const response = await fetch("/api/integrations/github/repos");
+      if (response.ok) {
+        const data = await response.json();
+        setRepositories(data.repositories || []);
+      }
+    } catch (error) {
+      console.error("Failed to load repositories:", error);
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-base font-semibold">Integrations</h3>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Connect your GitHub account to enable repository integration and automation.
+        </p>
+      </div>
+
+      {/* GitHub Integration */}
+      <Card className="border-border bg-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Github className="h-4 w-4 text-violet-400" />
+              <CardTitle className="text-sm">GitHub</CardTitle>
+            </div>
+            {githubConnected ? (
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                <CheckCircle className="h-3 w-3 mr-1" /> Connected
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="bg-muted/50 text-muted-foreground">
+                <XCircle className="h-3 w-3 mr-1" /> Not Connected
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {githubConnected && githubUser ? (
+            <>
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-secondary/30 p-3">
+                <img
+                  src={githubUser.avatar_url}
+                  alt={githubUser.login}
+                  className="h-10 w-10 rounded-full"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{githubUser.login}</p>
+                  <p className="text-xs text-muted-foreground">GitHub account connected</p>
+                </div>
+                <button
+                  onClick={handleGitHubDisconnect}
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  Disconnect
+                </button>
+              </div>
+
+              {/* Repository Selection */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Select Repositories</p>
+                  <button
+                    onClick={loadRepositories}
+                    disabled={loadingRepos}
+                    className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    {loadingRepos ? "Loading..." : "Refresh"}
+                  </button>
+                </div>
+
+                {repositories.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {repositories.map((repo) => (
+                      <div
+                        key={repo.full_name}
+                        className="flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Github className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">{repo.name}</p>
+                            <p className="text-xs text-muted-foreground">{repo.full_name}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {repo.private && (
+                            <Badge variant="secondary" className="text-[10px]">Private</Badge>
+                          )}
+                          <Switch />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border bg-secondary/30 p-4 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      {loadingRepos ? "Loading repositories..." : "No repositories loaded. Click Refresh to load your repositories."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="rounded-xl border border-border bg-secondary/30 p-6 text-center">
+              <Github className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
+              <p className="text-sm font-medium mb-1">Connect your GitHub account</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Sign in with GitHub to access your repositories and enable automation features.
+              </p>
+              <button
+                onClick={handleGitHubConnect}
+                className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-900/30 transition-all hover:bg-violet-500 active:scale-[0.98]"
+              >
+                <Github className="h-4 w-4" />
+                Sign in with GitHub
+              </button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Settings() {
   return (
     <div className="flex-1 overflow-auto">
@@ -604,7 +754,7 @@ export default function Settings() {
         <div className="px-8 py-4">
           <h1 className="text-xl font-bold tracking-tight text-foreground">Settings</h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Engineering memory, constitution rules, and Forge Seed configuration.
+            Engineering memory, constitution rules, integrations, and Forge Seed configuration.
           </p>
         </div>
       </div>
@@ -619,6 +769,9 @@ export default function Settings() {
               <TabsTrigger value="constitution" className="flex items-center gap-1.5 data-[state=active]:bg-violet-600/20 data-[state=active]:text-violet-300">
                 <Shield className="h-3.5 w-3.5" /> Constitution
               </TabsTrigger>
+              <TabsTrigger value="integrations" className="flex items-center gap-1.5 data-[state=active]:bg-violet-600/20 data-[state=active]:text-violet-300">
+                <Github className="h-3.5 w-3.5" /> Integrations
+              </TabsTrigger>
               <TabsTrigger value="ai" className="flex items-center gap-1.5 data-[state=active]:bg-violet-600/20 data-[state=active]:text-violet-300">
                 <Cpu className="h-3.5 w-3.5" /> AI Configuration
               </TabsTrigger>
@@ -628,6 +781,7 @@ export default function Settings() {
             </TabsList>
             <TabsContent value="memory"><MemoryTab /></TabsContent>
             <TabsContent value="constitution"><ConstitutionTab /></TabsContent>
+            <TabsContent value="integrations"><IntegrationsTab /></TabsContent>
             <TabsContent value="ai"><AIConfigTab /></TabsContent>
             <TabsContent value="seed"><ForgeSeedTab /></TabsContent>
           </Tabs>

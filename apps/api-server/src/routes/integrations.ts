@@ -139,4 +139,58 @@ router.post("/:id/test", async (req: Request, res: Response) => {
   });
 });
 
+// GitHub: Fetch repositories
+router.get("/github/repos", async (_req: Request, res: Response) => {
+  try {
+    const result = await query("SELECT * FROM forge.integrations WHERE type = 'github' AND enabled = true");
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "GitHub integration not found or not enabled" });
+    }
+
+    const integration = result.rows[0] as Integration;
+    const config = integration.config as { access_token?: string };
+
+    if (!config.access_token) {
+      return res.status(400).json({ error: "GitHub access token not found" });
+    }
+
+    // Fetch repositories from GitHub API
+    const response = await fetch("https://api.github.com/user/repos?per_page=100&sort=updated", {
+      headers: {
+        "Authorization": `Bearer ${config.access_token}`,
+        "User-Agent": "AcronIQ-Forge",
+        "Accept": "application/vnd.github.v3+json",
+      },
+    });
+
+    if (!response.ok) {
+      return res.status(500).json({ error: "Failed to fetch repositories from GitHub" });
+    }
+
+    const repositories = await response.json() as Array<{
+      name: string;
+      full_name: string;
+      private: boolean;
+      description: string | null;
+      html_url: string;
+      updated_at: string;
+    }>;
+
+    return res.json({
+      repositories: repositories.map((repo) => ({
+        name: repo.name,
+        full_name: repo.full_name,
+        private: repo.private,
+        description: repo.description,
+        url: repo.html_url,
+        updated_at: repo.updated_at,
+      })),
+    });
+  } catch (error) {
+    console.error("GitHub repositories fetch error:", error);
+    return res.status(500).json({ error: "Failed to fetch repositories" });
+  }
+});
+
 export default router;
